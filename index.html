@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.5</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.6</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
 <script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
 <style>
@@ -1398,7 +1398,7 @@
     #recBadge{left:10px;top:10px;height:34px;font-size:12px;padding:0 11px}
   }
   /* v2-14.1 🎬 HEVC 우선 토글 · ⛶ 전체화면 버튼 */
-  #recCtl #recHevc + span, #recCtl label.rc-tog{white-space:nowrap}
+  #recCtl label.rc-tog{white-space:nowrap}
   #recFs{height:34px!important;font-size:11.5px!important;background:#101a25!important;border-color:#2b3b53!important;color:#9fb0c6!important}
   #recFs.on{background:rgba(59,130,246,.18)!important;border-color:rgba(59,130,246,.55)!important;color:#bfdbfe!important}
   /* v2-14.2 🎚️ 화질 프리셋 — 1080p 30fps(기본) / 720p 60fps */
@@ -1641,6 +1641,15 @@
     #recCfg #recBack{height:31px}
   }
 
+  /* v2-14.6 codec — 행이 하나 더 늘어난 폰 가로(높이 <=540px)에서도 스크롤·잘림 없이 한 화면에 */
+  @media (max-height:540px) and (orientation:landscape){
+    #recCfg{padding-top:calc(4px + env(safe-area-inset-top,0px));padding-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+    .rcfg-card{max-height:95vh;max-height:95dvh}
+    .rcfg-head{padding:4px 12px}
+    .rcfg-body{padding:4px 10px 6px}
+    #recCfg #recCtl{gap:4px}
+  }
+
   /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
   #recRotate{
     position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:7;
@@ -1813,6 +1822,7 @@ apply(DATA);
   · v2-14: 블랙 팀 실버 테두리 · 설정 보정 항목 삭제 + 휘슬 통일 · 3파전 순서 변경 · 📺 출력 라벨
   · v2-14: ?mode=record — 후면 카메라 + 하단 스코어바 합성 + MediaRecorder 저장 (화질 1080p 30fps 기본 / 720p 60fps 전환)
   · v2-14.5: 🎞️ 영상 비트레이트 선택 — 표준 8Mbps(기본) / 고화질 14Mbps (localStorage 기억 · 녹화 중 변경 잠금)
+  · v2-14.6: 🎬 코덱 선택 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 미지원 기기 자동 H.264 폴백) (localStorage 기억 · 녹화 중 잠금)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
   · v2-13: 경기결과는 모바일/좁은 화면에서 같은 화면의 풀스크린 오버레이로 열려 점수·리셋이 즉시 반영(새 창은 직접호출+postMessage+400ms 폴링)
@@ -2279,9 +2289,13 @@ apply(DATA);
             <button type="button" class="rc-ps" data-bps="8000000" aria-pressed="true">표준 8Mbps</button>
             <button type="button" class="rc-ps" data-bps="14000000" aria-pressed="false">고화질 14Mbps</button>
           </div>
+          <div class="rc-row rc-preset rc-span2" id="recCodec" role="group" aria-label="코덱 설정"><!-- v2-14.6 codec -->
+            <span>코덱</span>
+            <button type="button" class="rc-ps" data-codec="h264" aria-pressed="true">H.264</button>
+            <button type="button" class="rc-ps" data-codec="hevc" aria-pressed="false">HEVC (H.265)</button>
+          </div>
           <div class="rc-row rc-span2"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
-          <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
-          <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
+          <label class="rc-tog rc-span2"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
           <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
           <button id="recFs" type="button">⛶ 전체화면</button>
           <div class="rc-row room rc-span2"><span id="recCfgStat" class="rcfg-stat">📡 끔</span><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
@@ -4640,7 +4654,7 @@ apply(DATA);
                '· 아직 진행하지 않은 쿼터는 —로 표시하고, 팀 전적은 기록이 없는 경기를 빼고 집계합니다.<br>' +
                '· 점수가 바뀌면 이 창도 즉시 갱신됩니다(직접 호출 + postMessage + 400ms 폴링).</p>';
 
-    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.5</span><span>' +
+    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.6</span><span>' +
                (M.three ? '3파전 · 매치업 × 쿼터' : '2파전 · 경기 G1~G4 × 쿼터') + '</span></div>';
 
     var tpl = document.getElementById('resClientTpl');
@@ -5274,12 +5288,19 @@ apply(DATA);
     base:'', micOn:true, ready:false, downloadName:'', video:{w:0,h:0},
     autoSave:false, autoSplit:false,   // autoSplit: 쿼터/경기/팀 변경 시 자동 분할·재시작 — 기본 꺼짐(한 파일로 계속 녹화)
     lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0,
-    hevc:true, fellBack:false,         // hevc: 🎬 HEVC(H.265) 우선으로 저장할지(기본 ON, 기기 미지원 시 자동 폴백)
+    codec:'h264', fellBack:false,      // codec: 🎬 'h264'(기본 · 호환성 우선) / 'hevc'(H.265 고효율 · 미지원 기기 자동 폴백)
+    hevc:false,                        // (호환) codec === 'hevc' 미러
     preset:'1080p30',                  // 🎚️ 화질 프리셋 — '1080p30'(기본) / '720p60'
     bps:8000000,                       // 🎞️ 영상 비트레이트 — 8000000(표준 8Mbps) / 14000000(고화질 14Mbps)
     camW:0, camH:0, camFps:0           // 실제로 열린 카메라의 해상도·프레임(요청과 다를 수 있어 표시용으로 보관)
   };
-  var REC_HEVC_KEY = 'bball_sb2_rec_hevc';
+  var REC_CODEC_KEY = 'bball_sb2_rec_codec';
+  /* 🎬 코덱 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 고효율, 미지원 기기에서는 자동 H.264 폴백) */
+  var REC_CODECS = {
+    h264: { id:'h264', label:'H.264',        note:'호환성 우선 · 어느 기기에서나 바로 재생됩니다' },
+    hevc: { id:'hevc', label:'HEVC (H.265)', note:'고효율 압축 · 미지원 기기에서는 H.264로 저장됩니다' }
+  };
+  var REC_DEFAULT_CODEC = 'h264';
   var REC_PRESET_KEY = 'bball_sb2_rec_preset';
   /* 🎚️ 화질 프리셋 — 캔버스 해상도 · 카메라 요청 · captureStream fps · 비트레이트를 한 벌로 묶는다 */
   var REC_PRESETS = {
@@ -5638,18 +5659,17 @@ apply(DATA);
     }
     recPaintPreset();
     recPaintBitrate();                             // v2-14.5: 녹화 시작/정지에 맞춰 비트레이트 버튼 잠금·해제
+    recPaintCodec();                               // v2-14.6: 코덱 버튼도 같은 규칙으로 잠금·해제
     var info = $('recInfo');
     if(info){
       var pp = recP();
-      var codec = REC.mime ? REC.mime.replace('video/', '') : (REC.hevc !== false ? 'HEVC 우선 · 녹화 대기' : 'H.264 · 녹화 대기');
       var portrait = REC.video.w && REC.video.h && REC.video.h > REC.video.w;
       var camW = REC.video.w || REC.camW || pp.w, camH = REC.video.h || REC.camH || pp.h;
       var camFps = Math.round(REC.camFps || pp.fps);
       var fpsWarn = (pp.fps >= 60 && REC.ready && REC.camFps && REC.camFps < 50) ? ' (60fps 미지원)' : '';
       var nowName = (REC.on && REC.base) ? (REC.base + REC.ext) : recFileName();
-      info.textContent = '화질 ' + pp.label + ' · ' + recBps().label +
+      info.textContent = '화질 ' + pp.label + ' · ' + recBps().label + ' · ' + recCodecInfo() +
         (REC.ready ? (' · 후면 카메라 ' + camW + '×' + camH + ' · ' + camFps + 'fps' + fpsWarn) : (REC.previewErr ? ' · 카메라 꺼짐(' + REC.previewErr + ')' : '')) +
-        ' · ' + codec +
         (portrait ? ' · 📱 가로로 돌려 촬영하세요' : '') +
         (REC.mic ? ' · 🎤 마이크' : ' · 🔇 무음') + ' · 파일명 ' + nowName;
     }
@@ -5696,7 +5716,7 @@ apply(DATA);
     'video/webm'
   ];
   function recPickMime(){
-    var cands = (REC.hevc !== false) ? REC_HEVC_CANDS.concat(REC_SAFE_CANDS) : REC_SAFE_CANDS.slice(0);
+    var cands = (REC.codec === 'hevc') ? REC_HEVC_CANDS.concat(REC_SAFE_CANDS) : REC_SAFE_CANDS.slice(0);
     for(var i = 0; i < cands.length; i++){
       try { if(window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return cands[i]; } catch(e){}
     }
@@ -5799,7 +5819,7 @@ apply(DATA);
       REC.lastBreak = (S.mode === 'break');   // 이미 휴식 중에 시작했다면 자동 저장을 걸지 않는다
       recWake();
       recPaint();
-      recToast('녹화 시작 · ' + pp.label + ' · ' + recBps().label + ' · ' + recFileName() + (REC.fellBack ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 3000);
+      recToast('녹화 시작 · ' + pp.label + ' · ' + recBps().label + ' · ' + recCodecInfo() + ' · ' + recFileName() + ((REC.codec === 'hevc' && REC.fellBack) ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 3000);
     } catch(e){
       recErr('이 브라우저는 캔버스 녹화(MediaRecorder)를 지원하지 않습니다.<br>' + (e && e.message ? e.message : ''), '녹화를 시작할 수 없습니다');
     }
@@ -5833,6 +5853,50 @@ apply(DATA);
     recPaintBitrate();
     recPaint();
     if(!silent) recToast('비트레이트 ' + recBps().label + ' · ' + recBps().note, 2600);
+    return true;
+  }
+  /* ---------------- 🎬 코덱 (H.264 기본 / HEVC H.265) ---------------- */
+  function recCodecDef(id){ return REC_CODECS[id] || REC_CODECS[REC_DEFAULT_CODEC]; }
+  function recCodec(){ return recCodecDef(REC.codec); }
+  /* 하단 안내 문구용 — 실제로 저장될 코덱(HEVC 요청이 폴백되면 그 사실까지) */
+  function recCodecInfo(){
+    if(recCodec().id !== 'hevc') return 'H.264';
+    if(!REC.mime) return 'HEVC';
+    return /hvc1|hev1/i.test(REC.mime) ? 'HEVC' : 'HEVC→H.264 폴백';
+  }
+  function recPaintCodec(){
+    var wrap = $('recCodec');
+    if(!wrap) return;
+    var btns = wrap.querySelectorAll('.rc-ps');
+    var cur = recCodec().id;
+    for(var i = 0; i < btns.length; i++){
+      var on = (btns[i].getAttribute('data-codec') === cur);
+      btns[i].classList.toggle('on', on);
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      btns[i].disabled = !!REC.on;               // 녹화 중에는 변경 금지
+    }
+  }
+  /* 코덱 전환 — 녹화 중에는 막고, 대기 중이면 다음 녹화 설정만 바꾼다 */
+  function recSetCodec(id, silent){
+    if(!REC_CODECS[id]) return false;
+    if(REC.on){
+      recPaintCodec();
+      recToast('녹화 중에는 코덱을 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
+      return false;
+    }
+    REC.codec = id;
+    REC.hevc = (id === 'hevc');                  // 옛 이름(REC.hevc) 호환
+    try { localStorage.setItem(REC_CODEC_KEY, id); } catch(e){}
+    REC.mime = recPickMime();
+    REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
+    recPaintCodec();
+    recPaint();
+    if(!silent){
+      var d = recCodec();
+      recToast('코덱 ' + d.label + ' · ' + (d.id === 'hevc'
+        ? (/hvc1|hev1/i.test(REC.mime) ? '이 기기에서 HEVC 녹화를 지원합니다' : '이 기기 미지원 → H.264로 자동 저장')
+        : d.note), 3000);
+    }
     return true;
   }
   /* 🎚️ 화질 전환 — 녹화 중에는 막고, 대기 중이면 캔버스·다음 녹화 설정을 새 프리셋으로 바꾼다 */
@@ -6537,25 +6601,19 @@ apply(DATA);
         bBtns[bi].addEventListener('click', function(){ recSetBitrate(this.getAttribute('data-bps')); });
       }
     }
-    /* 🎬 HEVC 우선 설정 복원 (localStorage) */
-    try { REC.hevc = (localStorage.getItem(REC_HEVC_KEY) !== '0'); } catch(e){ REC.hevc = true; }
-    var hevcBox = $('recHevc');
-    if(hevcBox){
-      var hevcLbl = hevcBox.parentNode;
-      hevcBox.checked = (REC.hevc !== false);
-      if(hevcLbl && hevcLbl.classList) hevcLbl.classList.toggle('on', REC.hevc !== false);
-      hevcBox.addEventListener('change', function(){
-        REC.hevc = !!this.checked;
-        try { localStorage.setItem(REC_HEVC_KEY, REC.hevc ? '1' : '0'); } catch(e){}
-        if(hevcLbl && hevcLbl.classList) hevcLbl.classList.toggle('on', REC.hevc);
-        if(REC.on){ recToast('녹화 중에는 코덱이 바뀌지 않습니다 · 다음 녹화부터 적용', 3000); }
-        else {
-          REC.mime = recPickMime();
-          REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
-          recToast(REC.hevc ? ('HEVC(H.265) 우선 · ' + (/hvc1|hev1/i.test(REC.mime) ? '지원됨' : '미지원 → 자동 폴백')) : 'H.264 우선으로 녹화합니다', 3000);
-        }
-        recPaint();
-      });
+    /* 🎬 코덱 복원 — 저장값이 없으면 H.264(기본) */
+    try {
+      var scodec = String(localStorage.getItem(REC_CODEC_KEY) || '');
+      REC.codec = (scodec === 'h264' || scodec === 'hevc') ? scodec : REC_DEFAULT_CODEC;
+    } catch(e){ REC.codec = REC_DEFAULT_CODEC; }
+    REC.hevc = (REC.codec === 'hevc');            // 옛 이름(REC.hevc) 호환
+    recPaintCodec();
+    var cWrap = $('recCodec');
+    if(cWrap){
+      var cBtns = cWrap.querySelectorAll('.rc-ps');
+      for(var ci = 0; ci < cBtns.length; ci++){
+        cBtns[ci].addEventListener('click', function(){ recSetCodec(this.getAttribute('data-codec')); });
+      }
     }
     if(!REC.on){
       REC.mime = recPickMime();                     /* 대기 중에도 실제로 저장될 코덱·확장자를 보여준다 */
@@ -6650,6 +6708,9 @@ apply(DATA);
   window.__recSetBitrate = recSetBitrate;      // 비트레이트 전환 (테스트·자동화용)
   window.__recBps = function(){ return REC.bps; };
   window.__recBitrates = REC_BPS;
+  window.__recSetCodec = recSetCodec;          // 코덱 전환 (테스트·자동화용)
+  window.__recCodec = function(){ return REC.codec; };
+  window.__recCodecs = REC_CODECS;
   window.__recStop = recStop;
   window.__recPause = recPause;
   /* v2-14.3 진단용 훅 — 동기화(0ms 직결 · 시계 보간) 검증에 쓴다 */
