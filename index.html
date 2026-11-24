@@ -59,12 +59,13 @@
   body.rot #app{transform:rotate(180deg)}
   #stagecol{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column}
   #topbar{
-    flex:0 0 42px;display:flex;align-items:center;justify-content:space-between;gap:8px;
-    padding:0 12px;background:#080b11;border-bottom:1px solid #141a24;
+    flex:0 0 auto;min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    flex-wrap:wrap;row-gap:4px;
+    padding:3px 12px;background:#080b11;border-bottom:1px solid #141a24;
   }
   body.display-mode #topbar{display:none}
   .tb-tag{font-size:11px;font-weight:800;letter-spacing:.2em;color:#5d6879}
-  .tb-right{display:flex;align-items:center;gap:6px}
+  .tb-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;row-gap:4px;min-width:0}
   .tb-btn{
     height:30px;padding:0 10px;border-radius:9px;
     background:#121a25;border:1px solid #222b3a;color:#b9c5d6;
@@ -73,6 +74,10 @@
   .tb-btn:active{background:#1b2532}
   .tb-btn.ico{width:34px;padding:0;font-size:14px}
   .tb-btn.res{background:#12251a;border-color:#2c5a3c;color:#bff5d2}
+  /* v2-14.2: ⛶ 전체화면 버튼도 아이콘 + 버튼명을 함께 표기 (전체화면 중에는 ✕ 해제) */
+  .tb-btn.fs{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 9px;font-size:11.5px;font-weight:800}
+  .tb-btn.fs .fs-ico{font-size:14px;line-height:1}
+  .tb-btn.fs .fs-lbl{white-space:nowrap;letter-spacing:-.01em}
   /* v2-13: 폰 폭에서도 📊 결과 버튼이 사라지지 않게 툴바를 압축한다(버튼은 유지) */
   /* v2-14: 폰 폭에서도 '📺 출력'처럼 버튼명이 함께 보이게 — 라벨을 숨기지 않고 간격·글자를 압축 */
   @media (max-width:560px){
@@ -82,11 +87,15 @@
     .tb-btn.ico{width:28px;font-size:13px;padding:0}
     .tb-btn.res{padding:0 6px;font-weight:900}
     .tb-btn[data-cmd="display"] .lbl{display:inline}
+    .tb-btn.fs{padding:0 6px;font-size:10px;gap:3px}
+    .tb-btn.fs .fs-ico{font-size:12px}
   }
   @media (max-width:404px){
     #topbar{padding:0 4px;gap:2px}
     .tb-btn{font-size:9.5px;padding:0 4px}
     .tb-btn.ico{width:25px;font-size:11.5px}
+    .tb-btn.fs{padding:0 4px;font-size:9.5px;gap:2px}
+    .tb-btn.fs .fs-ico{font-size:11px}
     .tb-right{gap:2px}
   }
   #viewport{position:relative;flex:1 1 auto;min-width:0;min-height:0;overflow:hidden;background:var(--bg)}
@@ -357,7 +366,8 @@
   body.mode-remote .sb.sec{height:34px;font-size:13px}
 
   /* 샷클락 ±1초 — 24초/14초 바로 아래. 경기 시간 ±1초와 헷갈리지 않게 '샷클락'을 붙인다 */
-  .sb.shot{height:52px}
+  /* v2-14.3: 버튼 이름이 길어져도 한 줄에 들어가게 — 줄바꿈 없이 살짝 압축 */
+  .sb.shot{height:52px;white-space:nowrap;font-size:18px;letter-spacing:-.01em;padding:0 6px}
   .shotadj{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:-2px}
   .sb.shotadjb{
     min-width:0;height:36px;border-radius:11px;
@@ -393,14 +403,21 @@
   .away .plus{border-color:var(--c-away-soft);background:#1a1114;color:#ffe0e0}
   .home .plus:active{background:#16283c}
   .away .plus:active{background:#33161a}
-  .minrow{display:flex;gap:5px;flex-wrap:nowrap}
+  /* v2-14.2: 점수 -1 을 누르기 쉽게 — 한 줄을 다 쓰는 48px 버튼으로 키우고,
+     팀파울 +1 / -1 은 그 아래 44px 두 칸으로 나눠 균형을 맞춘다 */
+  .minrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
   .xs{
-    flex:1 1 auto;min-width:0;height:40px;padding:0 4px;border-radius:11px;
+    flex:1 1 auto;min-width:0;height:44px;padding:0 8px;border-radius:12px;
     background:#121924;border:1px solid #222b3a;color:#93a0b3;
-    font-size:10.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-size:11.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     transition:background .12s ease;
   }
   .xs:active{background:#1a2331}
+  .xs.m1{
+    grid-column:1 / -1;height:48px;font-size:13px;font-weight:900;letter-spacing:0;
+    background:#1b1218;border-color:#43252f;color:#ffd7dc;
+  }
+  .xs.m1:active{background:#2b161d}
 
   /* 📊 경기결과 보기 — 조작 패널에서 눈에 띄는 그린 버튼 */
   .btnpair{display:flex;gap:8px;flex:0 0 auto}
@@ -544,6 +561,18 @@
   .matchbar .mbreset{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#8b98ac;padding:0 2px 0 0}
   .matchbar .mbreset input{width:14px;height:14px;flex:0 0 auto;accent-color:#4b7fc4}
   body.mode-remote .matchbar .mb{height:29px;font-size:10.5px}
+  /* v2-14.2: 조작 패널 순서 — 2파전은 경기선택이 점수 버튼 위(기존 그대로),
+     3파전(body.fmt3)이면 경기선택 줄을 +1/+2/+3 · 점수 -1 · 팀파울 아래로 내린다 */
+  #panel > .phead{order:10}
+  #panel > .prow{order:20}
+  #panel > .shotadj{order:30}
+  #panel > .clockadj{order:40}
+  #panel > .matchbar{order:50}
+  #panel > .teams{order:60}
+  #panel > .swapbtn{order:70}
+  #panel > .btnpair{order:80}
+  #panel > .fxpad{order:90}
+  body.fmt3 #panel > .matchbar{order:65}
 
   /* 사운드 패드 — 장내아나운서(5) 위 / 경기장 SFX(7) 아래 두 섹션 */
   .fxpad{
@@ -735,6 +764,27 @@
     box-shadow:0 30px 80px rgba(0,0,0,.7);
   }
   .sheet h2{margin:0;font-size:17px;font-weight:800;letter-spacing:.02em}
+  /* v2-14.4: 설정 제목 오른쪽 — 🔄 초기화(하단 리셋과 같은 동작) · ✕ 닫기 */
+  .sheet .shead{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+  .sheet .shead h2{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sheet .shead-btns{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+  .sheet .hbtn{
+    display:inline-flex;align-items:center;justify-content:center;gap:4px;height:34px;padding:0 11px;
+    border-radius:10px;font-size:12px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;
+    background:#1a2231;border:1px solid #33415a;color:#e3ebf7;
+  }
+  .sheet .hbtn:active{background:#243047;transform:translateY(1px)}
+  .sheet .hbtn.reset{background:#2a1214;border-color:#6d2a2f;color:#ffc2c2}
+  .sheet .hbtn.reset:active{background:#3a181b}
+  .sheet .hbtn .hi{font-size:13px;line-height:1}
+  /* 하단 전체폭 .close 스타일을 물려받지 않도록 헤더 버튼은 별도 클래스(hclose) */
+  .sheet .hbtn.hclose{width:auto;background:#1a2231;border-color:#33415a;color:#e3ebf7;font-size:12px;font-weight:800;height:34px}
+  @media (max-width:404px){
+    .sheet{padding:15px}
+    .sheet .shead{gap:6px}
+    .sheet .shead h2{font-size:16px}
+    .sheet .hbtn, .sheet .hbtn.hclose{height:32px;padding:0 8px;font-size:11px;gap:3px}
+  }
   .frow{display:flex;flex-direction:column;gap:7px}
   .frow > label{font-size:11.5px;font-weight:800;letter-spacing:.16em;color:var(--dim2)}
   .frow input{
@@ -810,16 +860,18 @@
   body.mode-remote .phead{display:none}
   body.mode-remote .bigstart{height:64px;font-size:20px}
   body.mode-remote .sb{height:54px;font-size:17px}
+  body.mode-remote .sb.shot{font-size:16.5px;padding:0 4px}   /* v2-14.3: 샷클락 24초/14초가 폰 폭에서도 한 줄 */
   body.mode-remote .plus{height:62px;font-size:24px}
-  body.mode-remote .xs{height:38px}
+  body.mode-remote .xs{height:46px}
   body.mode-remote .resetbtn{height:44px}
   body.mode-remote .tpanel{padding:9px;gap:8px}
   body.mode-remote .teams{flex:0 0 auto;min-height:0}
-  body.mode-remote .minrow .xs{font-size:11px}
-  /* 폰(리모컨)에서는 팀 패널이 절반 폭이라 세 버튼을 두 줄로 나눈다 — 라벨이 잘리지 않게 */
-  body.mode-remote .minrow{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-  body.mode-remote .minrow .xs{width:100%;height:34px;font-size:10.5px;padding:0 3px}
-  body.mode-remote .minrow .xs:first-child{grid-column:1 / -1}
+  body.mode-remote .minrow .xs{font-size:11.5px}
+  /* 폰(리모컨)에서는 팀 패널이 절반 폭이라 팀파울 두 버튼을 나란히 둔다 */
+  body.mode-remote .minrow{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  body.mode-remote .minrow .xs{width:100%;height:46px;font-size:11.5px;padding:0 4px}
+  /* v2-14.2: 폰에서는 점수 -1 이 한 줄을 다 쓰므로 높이·글자를 더 키운다 */
+  body.mode-remote .minrow .xs.m1{grid-column:1 / -1;height:50px;font-size:15px;letter-spacing:.02em}
 
   /* ======================= 세로(9:16) 출력 레이아웃 =======================
      가로 = 기존 1600×900 그대로 / 세로 = 900×1600 보드로 재배치
@@ -1546,7 +1598,7 @@ apply(DATA);
         <button class="tb-btn" data-cmd="display" title="출력용 창 열기">📺<span class="lbl"> 출력</span></button>
         <button class="tb-btn res" data-cmd="results" title="경기별·쿼터별 저장 점수 결과표를 새 창으로">📊 결과</button>
         <button class="tb-btn rmt" id="btnRemote" data-cmd="remote" title="원격 오버레이 연동 (다른 기기 실시간 동기화)" aria-label="원격 오버레이 연동"><span class="rmt-i">📡</span><span class="rmt-l">원격</span><i class="dot" id="rmDot"></i></button>
-        <button class="tb-btn ico" data-cmd="fs" title="전체화면" aria-label="전체화면">⛶</button>
+        <button class="tb-btn fs" data-cmd="fs" title="전체화면" aria-label="전체화면"><span class="fs-ico" id="tbFsIco" aria-hidden="true">⛶</span><span class="fs-lbl" id="tbFsLbl">전체화면</span></button>
         <button class="tb-btn ico" data-cmd="settings" title="설정" aria-label="설정">⚙</button>
       </div>
     </div>
@@ -1667,8 +1719,8 @@ apply(DATA);
 
 
     <div class="prow">
-      <button class="sb shot" id="btn24" data-shot="24">24초</button>
-      <button class="sb shot" id="btn14" data-shot="14">14초</button>
+      <button class="sb shot" id="btn24" data-shot="24">샷클락 24초</button>
+      <button class="sb shot" id="btn14" data-shot="14">샷클락 14초</button>
     </div>
 
     <div class="shotadj" aria-label="샷클락 1초 보정 (0~24초)">
@@ -1697,7 +1749,7 @@ apply(DATA);
           <button class="sb plus" data-act="home:+3">+3</button>
         </div>
         <div class="minrow">
-          <button class="xs" data-act="home:-1">점수 -1</button>
+          <button class="xs m1" data-act="home:-1">점수 -1</button>
           <button class="xs" data-act="home:f+">팀파울 +1</button>
           <button class="xs" data-act="home:f-">팀파울 -1</button>
         </div>
@@ -1714,7 +1766,7 @@ apply(DATA);
           <button class="sb plus" data-act="away:+3">+3</button>
         </div>
         <div class="minrow">
-          <button class="xs" data-act="away:-1">점수 -1</button>
+          <button class="xs m1" data-act="away:-1">점수 -1</button>
           <button class="xs" data-act="away:f+">팀파울 +1</button>
           <button class="xs" data-act="away:f-">팀파울 -1</button>
         </div>
@@ -1756,7 +1808,13 @@ apply(DATA);
   <!-- ================= 설정 모달 ================= -->
   <div class="modal" id="modal" hidden>
     <div class="sheet">
-      <h2>설정 · 시간</h2>
+      <div class="shead">
+        <h2>설정 · 시간</h2>
+        <div class="shead-btns">
+          <button class="hbtn reset" type="button" data-cmd="reset" aria-label="경기 전체 초기화 (점수·파울·시계)"><span class="hi" aria-hidden="true">🔄</span> 초기화</button>
+          <button class="hbtn hclose" type="button" data-cmd="modal-close" aria-label="설정 닫기"><span class="hi" aria-hidden="true">✕</span> 닫기</button>
+        </div>
+      </div>
 
       <div class="frow">
         <label>홈 팀 이름</label>
@@ -3186,14 +3244,24 @@ apply(DATA);
 
   /* ================= 출력 화면 전체화면 버튼 라벨 ================= */
   function paintFsBtn(){
-    var b = $('dispFs');
-    if(!b) return;
     var on = !!(document.fullscreenElement || document.webkitFullscreenElement ||
                 document.mozFullScreenElement || document.msFullscreenElement);
-    var t = $('dispFsTxt'), ic = $('dispFsIco');
-    if(t) t.textContent = on ? '전체화면 해제' : '전체화면';
-    if(ic) ic.textContent = on ? '✕' : '⛶';
-    b.setAttribute('aria-label', on ? '전체화면 해제' : '전체화면');
+    var b = $('dispFs');
+    if(b){
+      var t = $('dispFsTxt'), ic = $('dispFsIco');
+      if(t) t.textContent = on ? '전체화면 해제' : '전체화면';
+      if(ic) ic.textContent = on ? '✕' : '⛶';
+      b.setAttribute('aria-label', on ? '전체화면 해제' : '전체화면');
+    }
+    /* v2-14.2: 조작 화면 상단 툴바 버튼도 같은 상태를 글자로 보여준다 */
+    var tb = document.querySelector('#topbar .tb-btn.fs');
+    if(tb){
+      var tl = $('tbFsLbl'), ti = $('tbFsIco');
+      if(tl) tl.textContent = on ? '해제' : '전체화면';
+      if(ti) ti.textContent = on ? '✕' : '⛶';
+      tb.setAttribute('aria-label', on ? '전체화면 해제' : '전체화면');
+      tb.title = on ? '전체화면 해제' : '전체화면';
+    }
   }
   /* 전광판 위에서 마음이 움직이면 버튼을 보여주고, 4.5초 조용하면 숨긴다 */
   var fsHideT = null;
@@ -3573,6 +3641,7 @@ apply(DATA);
     document.body.classList.toggle('rot', !!S.rot);
     document.body.classList.toggle('mirror', isDisplay && !!S.mirror);
     document.body.classList.toggle('break-mode', S.mode === 'break');
+    document.body.classList.toggle('fmt3', S.format === '3');   /* v2-14.2: 3파전이면 경기선택 줄을 점수 버튼 아래로 */
 
     /* 출력 레이아웃 (가로 16:9 / 세로 9:16) */
     var wantPortrait = (S.layout === 'portrait');
@@ -6636,6 +6705,7 @@ apply(DATA);
 
   rmInit();
   render();
+  paintFsBtn();          /* v2-14.2: 상단 전체화면 버튼 글자(⛶ 전체화면 / ✕ 해제) 초기화 */
 
   applyMode();
   fit();
