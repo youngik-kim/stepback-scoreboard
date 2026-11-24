@@ -1350,6 +1350,25 @@
   #recCtl #recHevc + span, #recCtl label.rc-tog{white-space:nowrap}
   #recFs{height:34px!important;font-size:11.5px!important;background:#101a25!important;border-color:#2b3b53!important;color:#9fb0c6!important}
   #recFs.on{background:rgba(59,130,246,.18)!important;border-color:rgba(59,130,246,.55)!important;color:#bfdbfe!important}
+  /* v2-14.2 🎚️ 화질 프리셋 — 1080p 30fps(기본) / 720p 60fps */
+  #recCtl .rc-preset{gap:5px}
+  #recCtl .rc-ps{
+    flex:1 1 0;width:auto;min-width:0;height:30px;padding:0 6px;
+    border-radius:8px;border:1px solid #27364a;background:#0b1420;color:#9fb0c6;
+    font-size:11px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;
+  }
+  #recCtl .rc-ps.on{
+    background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.70);color:#dbeafe;
+    box-shadow:inset 0 0 0 1px rgba(59,130,246,.22);
+  }
+  #recCtl .rc-ps:disabled{opacity:.42}
+  @media (max-height:540px) and (orientation:landscape){
+    #recCtl .rc-ps{height:26px;font-size:10px;padding:0 4px}
+  }
+  @media (orientation:portrait), (max-width:820px){
+    #recCtl .rc-preset{flex:1 1 100%}
+    #recCtl .rc-ps{height:34px;font-size:11.5px}
+  }
   /* ===================================================================
      ?mode=display (출력용 전광판) — 화면 끝까지 꽉 채우기
      · 전체화면이면 브라우저 UI 가 사라지고, 보드는 1600×900 무대를 화면에
@@ -1499,7 +1518,7 @@ apply(DATA);
   · v2-14: 3파전 자동 1경기 선택 · 좌우변경/매치업 전환 점수 유지 · 00:10 기준 카운트 칼싱크
   · v2-14: 휴식 45초 + 픽사베이 NBA 비트(45초 편집) · 쿼터 종료/휴식끝 한국어 안내(톤 연동)
   · v2-14: 블랙 팀 실버 테두리 · 설정 보정 항목 삭제 + 휘슬 통일 · 3파전 순서 변경 · 📺 출력 라벨
-  · v2-14: ?mode=record — 후면 카메라 1080p 30fps + 하단 스코어바 합성 + MediaRecorder 저장
+  · v2-14: ?mode=record — 후면 카메라 + 하단 스코어바 합성 + MediaRecorder 저장 (화질 1080p 30fps 기본 / 720p 60fps 전환)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
   · v2-13: 경기결과는 모바일/좁은 화면에서 같은 화면의 풀스크린 오버레이로 열려 점수·리셋이 즉시 반영(새 창은 직접호출+postMessage+400ms 폴링)
@@ -1850,7 +1869,7 @@ apply(DATA);
           <button class="chip" data-cmd="fs">⛶ 전체화면</button>
           <button class="chip" data-cmd="display">📺 출력용 창 열기</button>
           <button class="chip" data-cmd="results">📊 경기결과 보기</button>
-          <button class="chip" data-cmd="record">🎥 녹화 모드 (1080p 30fps)</button>
+          <button class="chip" data-cmd="record">🎥 녹화 모드 (1080p·720p)</button>
           <button class="chip" data-cmd="panel">☰ 조작 패널</button>
           <button class="chip" data-cmd="rot">🔄 180° 회전</button>
         </div>
@@ -1928,6 +1947,11 @@ apply(DATA);
     <button id="recBtn" type="button">● 녹화 시작</button>
     <button id="recPause" type="button" disabled>⏸ 일시정지</button>
     <button id="recStop" type="button" disabled>■ 정지(저장)</button>
+    <div class="rc-row rc-preset" id="recPreset" role="group" aria-label="화질 설정">
+      <span>화질</span>
+      <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
+      <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
+    </div>
     <div class="rc-row"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
     <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
     <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
@@ -1969,7 +1993,7 @@ apply(DATA);
     <input id="rpLink" readonly aria-label="오버레이 링크">
     <button class="rp-mini" data-rp="copy" type="button">복사</button>
   </div>
-  <button class="rp-mini rp-wide" data-rp="record" type="button">🎥 녹화 모드 열기 (1080p 30fps)</button>
+  <button class="rp-mini rp-wide" data-rp="record" type="button">🎥 녹화 모드 열기 (1080p30 · 720p60)</button>
   <button class="rp-mini rp-wide" data-rp="open" type="button">새 창에서 오버레이 열기</button>
   <button class="rp-mini rp-wide" data-rp="obs" type="button">이 화면을 오버레이로 전환 (배경 투명)</button>
   <p class="rp-foot">다른 기기에서 같은 파일을 열고 <b id="rpUrlHint">?mode=obs&amp;room=STEP</b> 로 접속하거나, 그 기기에서 <b>📡 → 방 코드 입력 → 📥 수신</b>을 켜면 실시간으로 따라갑니다.</p>
@@ -4841,8 +4865,10 @@ apply(DATA);
   window.addEventListener('beforeunload', function(){ if(!isDisplay) save(); });
 
   /* =====================================================================
-     🎥 녹화 모드 (?mode=record) — 후면 카메라 1080p 30fps + 하단 스코어바 합성 + MediaRecorder 저장
+     🎥 녹화 모드 (?mode=record) — 후면 카메라 + 하단 스코어바 합성 + MediaRecorder 저장
      · 화면 전체 16:9 캔버스에 카메라를 cover 로 그리고, 하단에 콤팩트 스코어바를 매 프레임 합성
+     · 🎚️ 화질 프리셋: 1080p 30fps(기본) / 720p 60fps — 캔버스 해상도·카메라 요청·captureStream fps·비트레이트를 함께 바꾼다
+       (스코어바는 1920×1080 기준 좌표계로 그린 뒤 배율만 바꿔 720p 에서도 상대 크기·비율이 1080p 와 같다)
      · 스코어바 크기 70%~130% 슬라이더(실시간)
      · ● 녹화 시작 / ⏸ 일시정지(▶ 재개) / ■ 정지(저장) + REC 경과 시간
      · 🎤 마이크 ON/OFF · 📡 방 코드(B폰 MQTT 실시간 점수) · WakeLock(녹화 중 화면 꺼짐 방지)
@@ -4858,9 +4884,18 @@ apply(DATA);
     base:'', micOn:true, ready:false, downloadName:'', video:{w:0,h:0},
     autoSave:false, autoSplit:false,   // autoSplit: 쿼터/경기/팀 변경 시 자동 분할·재시작 — 기본 꺼짐(한 파일로 계속 녹화)
     lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0,
-    hevc:true, fellBack:false          // hevc: 🎬 HEVC(H.265) 우선으로 저장할지(기본 ON, 기기 미지원 시 자동 폴백)
+    hevc:true, fellBack:false,         // hevc: 🎬 HEVC(H.265) 우선으로 저장할지(기본 ON, 기기 미지원 시 자동 폴백)
+    preset:'1080p30',                  // 🎚️ 화질 프리셋 — '1080p30'(기본) / '720p60'
+    camW:0, camH:0, camFps:0           // 실제로 열린 카메라의 해상도·프레임(요청과 다를 수 있어 표시용으로 보관)
   };
   var REC_HEVC_KEY = 'bball_sb2_rec_hevc';
+  var REC_PRESET_KEY = 'bball_sb2_rec_preset';
+  /* 🎚️ 화질 프리셋 — 캔버스 해상도 · 카메라 요청 · captureStream fps · 비트레이트를 한 벌로 묶는다 */
+  var REC_PRESETS = {
+    '1080p30': { id:'1080p30', w:1920, h:1080, fps:30, vbps:8000000, label:'1080p 30fps', note:'화면이 더 선명합니다' },
+    '720p60' : { id:'720p60',  w:1280, h:720,  fps:60, vbps:8000000, label:'720p 60fps',  note:'움직임이 더 부드럽습니다' }
+  };
+  var REC_DEFAULT_PRESET = '1080p30';
   var recCanvas = null, recCtx = null, recVideoEl = null, recRaf = 0;
   var REC_Q = ['1Q', '2Q', '3Q', '4Q', 'OT'];
   var REC_FONT = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,-apple-system,sans-serif';
@@ -4882,6 +4917,38 @@ apply(DATA);
   function recFileName(){ return recFileBase() + (REC.ext || '.webm'); }
   window.__recFileName = recFileName;
   window.__recFileBase = recFileBase;
+
+  /* ---------------- 🎚️ 화질 프리셋 (1080p 30fps 기본 / 720p 60fps) ---------------- */
+  function recPresetDef(id){ return REC_PRESETS[id] || REC_PRESETS[REC_DEFAULT_PRESET]; }
+  function recP(){ return recPresetDef(REC.preset); }
+  function recApplyCanvas(){
+    var p = recP();
+    if(!recCanvas) return;
+    if(recCanvas.width !== p.w || recCanvas.height !== p.h){
+      recCanvas.width = p.w;                     // 캔버스 자체를 프리셋 해상도로 (720p → 1280×720)
+      recCanvas.height = p.h;
+    }
+  }
+  function recPaintPreset(){
+    var wrap = $('recPreset');
+    if(!wrap) return;
+    var btns = wrap.querySelectorAll('.rc-ps');
+    for(var i = 0; i < btns.length; i++){
+      var on = (btns[i].getAttribute('data-preset') === REC.preset);
+      btns[i].classList.toggle('on', on);
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      btns[i].disabled = !!REC.on;                // 녹화 중에는 전환 금지
+    }
+  }
+  /* 실제로 열린 카메라 트랙의 해상도·프레임 — 기기가 요청한 60fps 를 못 주면 그대로 표시한다 */
+  function recCamSettings(){
+    if(!REC.cam) return;
+    try {
+      var tr = REC.cam.getVideoTracks()[0];
+      var st = (tr && tr.getSettings) ? tr.getSettings() : {};
+      REC.camW = st.width || 0; REC.camH = st.height || 0; REC.camFps = st.frameRate || 0;
+    } catch(e){}
+  }
 
   /* ---------------- 스코어바 그리기 (1920×1080 캔버스) ---------------- */
   function recRR(ctx, x, y, w, h, r){
@@ -5095,31 +5162,40 @@ apply(DATA);
   /* ---------------- 캔버스 프레임 루프 ---------------- */
   function recFrame(){
     if(!recMode) return;
-    var W = 1920, H = 1080;
+    var p = recP();
+    var W = p.w, H = p.h;
+    if(recCanvas && (recCanvas.width !== W || recCanvas.height !== H)){
+      recCanvas.width = W; recCanvas.height = H;   // 프리셋이 바뀌면 캔버스도 즉시 맞춘다
+    }
     var ctx = recCtx;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, W, H);
+    /* 카메라·스코어바는 1920×1080 기준 좌표계로 그린 뒤 프리셋 배율로 통째로 줄인다.
+       → 720p(1280×720)에서도 스코어바의 상대 크기·여백·비율이 1080p 와 똑같고,
+         글자는 최종 해상도에서 다시 래스터화되어 흐려지지 않는다. */
+    var DW = 1920, DH = 1080;
+    ctx.setTransform(W / DW, 0, 0, H / DH, 0, 0);
     var v = recVideoEl;
     if(v && v.videoWidth && v.readyState >= 2){
       var vw = v.videoWidth, vh = v.videoHeight;
-      var s = Math.max(W / vw, H / vh);
+      var s = Math.max(DW / vw, DH / vh);
       var dw = vw * s, dh = vh * s;
-      ctx.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      ctx.drawImage(v, (DW - dw) / 2, (DH - dh) / 2, dw, dh);
       REC.video.w = vw; REC.video.h = vh;
     } else {
-      var gr = ctx.createLinearGradient(0, 0, 0, H);
+      var gr = ctx.createLinearGradient(0, 0, 0, DH);
       gr.addColorStop(0, '#0b1220'); gr.addColorStop(1, '#05070a');
-      ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, DW, DH);
       ctx.fillStyle = '#4a5b73'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = recFont(38, 800);
-      ctx.fillText(REC.ready ? '카메라 준비 중…' : '● 녹화 시작을 누르면 카메라 미리보기가 켜집니다', W / 2, H / 2 - 20);
+      ctx.fillText(REC.ready ? '카메라 준비 중…' : '● 녹화 시작을 누르면 카메라 미리보기가 켜집니다', DW / 2, DH / 2 - 20);
       if(!REC.ready){
         ctx.font = recFont(22, 700); ctx.fillStyle = '#33475e';
-        ctx.fillText('카메라 녹화는 https:// 주소에서 동작합니다', W / 2, H / 2 + 40);
+        ctx.fillText('카메라 녹화는 https:// 주소에서 동작합니다', DW / 2, DH / 2 + 40);
       }
     }
-    drawRecBar(ctx, W, H, REC.scale);
+    drawRecBar(ctx, DW, DH, REC.scale);
     /* v2-14(수정): 촬영 중 쿼터·경기·팀·원격 상태가 바뀌어도 자동 분할·재시작하지 않는다.
        녹화는 시작할 때의 파일명(REC.base) 하나로 ■ 정지(저장) 때까지 계속 이어진다.
        (자동 분할이 필요하면 REC.autoSplit = true 로 켤 수 있다 — 기본값 false) */
@@ -5160,13 +5236,20 @@ apply(DATA);
       stopBtn.disabled = !REC.on;
       stopBtn.classList.toggle('on', !!REC.on);
     }
+    recPaintPreset();
     var info = $('recInfo');
     if(info){
+      var pp = recP();
       var codec = REC.mime ? REC.mime.replace('video/', '') : (REC.hevc !== false ? 'HEVC 우선 · 녹화 대기' : 'H.264 · 녹화 대기');
       var portrait = REC.video.w && REC.video.h && REC.video.h > REC.video.w;
+      var camW = REC.video.w || REC.camW || pp.w, camH = REC.video.h || REC.camH || pp.h;
+      var camFps = Math.round(REC.camFps || pp.fps);
+      var fpsWarn = (pp.fps >= 60 && REC.ready && REC.camFps && REC.camFps < 50) ? ' (60fps 미지원)' : '';
       /* 녹화 중에는 실제로 저장될 이름(시작 시점 REC.base)을 그대로 보여준다 — 쿼터가 바뀌어도 이름이 흔들리지 않는다 */
       var nowName = (REC.on && REC.base) ? (REC.base + REC.ext) : recFileName();
-      info.textContent = (REC.ready ? ('후면 카메라 ' + (REC.video.w || 1920) + '×' + (REC.video.h || 1080) + ' · 30fps · ' + codec) : '카메라 대기') +
+      info.textContent = '화질 ' + pp.label +
+        (REC.ready ? (' · 후면 카메라 ' + camW + '×' + camH + ' · ' + camFps + 'fps' + fpsWarn) : '') +
+        ' · ' + codec +
         (portrait ? ' · 📱 가로로 돌려 촬영하세요' : '') +
         (REC.mic ? ' · 🎤 마이크' : ' · 🔇 무음') + ' · 파일명 ' + nowName;
     }
@@ -5235,9 +5318,15 @@ apply(DATA);
       recErr('이 브라우저에서는 카메라를 열 수 없습니다.<br>카메라 녹화는 <b>https://</b> 주소에서 동작합니다.', '카메라 사용 불가');
       return;
     }
+    var pp = recP();
+    recApplyCanvas();                                   // 카메라를 열기 전에 캔버스를 프리셋 해상도로
     try {
       REC.cam = await md.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30, max: 30 } },
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: pp.w }, height: { ideal: pp.h },
+          frameRate: { ideal: pp.fps, max: pp.fps }     // 720p 60fps 는 60fps 로 요청 (미지원 기기는 가까운 값으로 열린다)
+        },
         audio: false
       });
     } catch(e){
@@ -5257,6 +5346,7 @@ apply(DATA);
       await recVideoEl.play().catch(function(){});
     } catch(e){}
     REC.ready = true;
+    recCamSettings();
     /* 마이크(현장음) — 체육관 소리가 뭉개지지 않게 자동 보정을 모두 끈다 */
     if(REC.micOn){
       try {
@@ -5276,14 +5366,16 @@ apply(DATA);
   }
   function recBeginRecording(){
     try {
-      var stream = recCanvas.captureStream(30);
+      var pp = recP();
+      recApplyCanvas();
+      var stream = recCanvas.captureStream(pp.fps);     // 1080p30 → 30fps · 720p60 → 60fps
       if(REC.mic){
         REC.mic.getAudioTracks().forEach(function(t){ try { t.enabled = true; stream.addTrack(t); } catch(e){} });
       }
       REC.stream = stream;
       REC.fellBack = false;
       REC.mime = recPickMime();
-      var opts = { videoBitsPerSecond: 8500000, audioBitsPerSecond: 128000 };
+      var opts = { videoBitsPerSecond: pp.vbps || 8000000, audioBitsPerSecond: 128000 };
       REC.rec = recNewRecorder(stream, opts);            // HEVC 생성 실패 시 H.264/MP4 로 즉시 재시도
       REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
       REC.chunks = [];
@@ -5297,10 +5389,46 @@ apply(DATA);
       REC.lastBreak = (S.mode === 'break');   // 이미 휴식 중에 시작했다면 자동 저장을 걸지 않는다
       recWake();
       recPaint();
-      recToast('녹화 시작 · ' + recFileName() + (REC.fellBack ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 2200);
+      recToast('녹화 시작 · ' + pp.label + ' · ' + recFileName() + (REC.fellBack ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 2400);
     } catch(e){
       recErr('이 브라우저는 캔버스 녹화(MediaRecorder)를 지원하지 않습니다.<br>' + (e && e.message ? e.message : ''), '녹화를 시작할 수 없습니다');
     }
+  }
+  /* 🎚️ 화질 전환 — 녹화 중에는 막고, 대기 중이면 캔버스·다음 녹화 설정을 새 프리셋으로 바꾼다 */
+  function recSetPreset(id, silent){
+    var p = REC_PRESETS[id];
+    if(!p) return false;
+    if(REC.on){
+      recPaintPreset();
+      recToast('녹화 중에는 화질을 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
+      return false;
+    }
+    REC.preset = id;
+    try { localStorage.setItem(REC_PRESET_KEY, id); } catch(e){}
+    REC.video.w = 0; REC.video.h = 0; REC.camW = 0; REC.camH = 0; REC.camFps = 0;
+    recApplyCanvas();
+    recPaintPreset();
+    recPaint();
+    if(!silent) recToast('화질 ' + p.label + ' · ' + p.note, 2600);
+    if(REC.cam) recRestartCam();          // 대기 중 미리보기가 켜져 있으면 새 해상도·프레임으로 다시 연다
+    return true;
+  }
+  function recRestartCam(){
+    var p = recP(), md = navigator.mediaDevices;
+    if(!md || !md.getUserMedia) return;
+    if(REC.cam){ try { REC.cam.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} REC.cam = null; }
+    md.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: p.w }, height: { ideal: p.h }, frameRate: { ideal: p.fps, max: p.fps } },
+      audio: false
+    }).then(function(s){
+      if(REC.on){ try { s.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} return; }   // 그 사이 녹화가 시작됐으면 버린다
+      REC.cam = s;
+      if(recVideoEl){
+        try { recVideoEl.srcObject = s; recVideoEl.play().catch(function(){}); } catch(e){}
+      }
+      recCamSettings();
+      recPaint();
+    }).catch(function(){ recToast('카메라를 새 화질로 다시 열지 못했습니다 · 다음 녹화부터 적용됩니다', 3200); });
   }
   function recPause(){
     if(!REC.rec || !REC.on) return;
@@ -5800,6 +5928,20 @@ apply(DATA);
     recCtx = recCanvas.getContext('2d');
     document.body.classList.add('record-mode');
     $('recWrap').hidden = false;
+    /* 🎚️ 화질 프리셋 복원 — 저장된 값이 없으면 1080p 30fps(기본) */
+    try {
+      var sp = localStorage.getItem(REC_PRESET_KEY);
+      REC.preset = REC_PRESETS[sp] ? sp : REC_DEFAULT_PRESET;
+    } catch(e){ REC.preset = REC_DEFAULT_PRESET; }
+    recApplyCanvas();
+    recPaintPreset();
+    var pWrap = $('recPreset');
+    if(pWrap){
+      var pBtns = pWrap.querySelectorAll('.rc-ps');
+      for(var pi = 0; pi < pBtns.length; pi++){
+        pBtns[pi].addEventListener('click', function(){ recSetPreset(this.getAttribute('data-preset')); });
+      }
+    }
     /* 🎬 HEVC 우선 설정 복원 (localStorage) */
     try { REC.hevc = (localStorage.getItem(REC_HEVC_KEY) !== '0'); } catch(e){ REC.hevc = true; }
     var hevcBox = $('recHevc');
@@ -5917,6 +6059,9 @@ apply(DATA);
     setInterval(recPaint, 700);
   }
   window.__recStart = recStart;
+  window.__recSetPreset = recSetPreset;        // 화질 전환 (테스트·자동화용)
+  window.__recPreset = function(){ return REC.preset; };
+  window.__recPresets = REC_PRESETS;
   window.__recStop = recStop;
   window.__recPause = recPause;
   window.__recResume = recResume;
