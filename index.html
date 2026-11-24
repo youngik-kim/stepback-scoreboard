@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.3</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.4</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
 <script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
 <style>
@@ -1477,34 +1477,156 @@
   #recMin button:disabled{opacity:.4}
   #recMin #recStop{background:rgba(8,12,18,.56)!important;border-color:rgba(255,120,110,.5)!important;color:#ffd2d2!important}
   #recMin #recPause.paused{background:rgba(30,24,8,.72)!important;border-color:rgba(245,197,66,.65)!important;color:#ffe27a!important}
-  /* ③ ⚙️ 레코더 설정 서랍 */
+  /* ③ ⚙️ 레코더 설정 — 화면 중앙 모달 (v2-14.4 가독성 개편) */
   #recCfg{
-    position:fixed;right:10px;top:10px;bottom:10px;z-index:9;
-    width:min(330px,calc(100vw - 20px));
-    display:flex;flex-direction:column;gap:9px;padding:12px 12px 10px;border-radius:18px;
-    background:rgba(8,12,18,.94);border:1px solid rgba(130,150,180,.32);
-    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-    box-shadow:0 22px 50px rgba(0,0,0,.62);overflow-y:auto;
+    position:fixed;inset:0;z-index:10;
+    display:flex;align-items:center;justify-content:center;
+    padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px));
+    background:rgba(2,4,8,.76);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   }
   #recCfg[hidden]{display:none !important}
-  .rcfg-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px 1px}
-  .rcfg-head b{font-size:13.5px;font-weight:900;letter-spacing:.02em;color:#eaf2fd}
-  #recCfgClose{
-    width:32px;height:32px;border-radius:9px;border:1px solid #2b3b53;background:#101a25;
-    color:#9fb0c6;font-size:13px;font-weight:900;padding:0;
+  .rcfg-card{
+    width:min(92vw,680px);
+    max-height:88vh;max-height:88dvh;
+    display:flex;flex-direction:column;min-height:0;
+    border-radius:16px;overflow:hidden;
+    background:#0b1420;border:1px solid rgba(140,162,192,.5);
+    box-shadow:0 26px 64px rgba(0,0,0,.8);
   }
-  /* 서랍 안에서는 예전 우측 패널 위치·배경을 쓰지 않는다 */
+  /* 상단 헤더 — 스크롤해도 위에 고정, 배경은 불투명 다크 네이비 */
+  .rcfg-head{
+    position:sticky;top:0;z-index:3;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 14px;background:#132133;border-bottom:1px solid rgba(140,162,192,.38);
+  }
+  .rcfg-head b{display:flex;align-items:center;gap:7px;font-size:16px;font-weight:900;letter-spacing:.01em;color:#f4f8ff;white-space:nowrap}
+  /* 연결 상태 칩 — 방 코드 줄 왼쪽에 붙는다 */
+  .rcfg-stat{
+    flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+    height:28px;padding:0 11px;border-radius:999px;
+    font-size:12px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;
+    color:#9fb0c6;background:rgba(9,15,23,.75);border:1px solid rgba(130,150,180,.38);
+  }
+  .rcfg-stat.on{color:#8cf5bd;border-color:rgba(16,232,117,.55);background:rgba(16,232,117,.10)}
+  .rcfg-stat.wait{color:#ffe27a;border-color:rgba(245,197,66,.55);background:rgba(245,197,66,.10)}
+  #recCfgClose{
+    flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    height:40px;min-width:86px;padding:0 13px;border-radius:11px;
+    border:1px solid #8fb0d8;background:#20344c;color:#f4f8ff;
+    font-size:14px;font-weight:900;letter-spacing:-.01em;
+    box-shadow:0 2px 0 rgba(0,0,0,.45);
+  }
+  #recCfgClose:active{transform:translateY(1px);background:#28415e}
+  /* 본문만 스크롤 — 헤더·카드 테두리는 항상 보인다 */
+  .rcfg-body{
+    flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;padding:12px 14px 14px;
+  }
   #recCfg #recCtl{
     position:static;right:auto;top:auto;bottom:auto;left:auto;transform:none;
     width:auto;max-height:none;overflow:visible;padding:0;border:0;border-radius:0;
-    background:none;box-shadow:none;display:flex;flex-direction:column;gap:8px;
+    background:none;box-shadow:none;
+    display:grid;grid-template-columns:1fr;gap:9px;align-items:stretch;
   }
-  #recCfg #recCtl button{width:100%}
-  #recCfg #recCtl .rc-mini{width:auto}
+  @media (min-width:540px){
+    #recCfg #recCtl{grid-template-columns:1fr 1fr;gap:10px}
+  }
+  #recCfg #recCtl > *{min-width:0;width:auto}
+  #recCfg #recCtl > .rc-span2{grid-column:1 / -1}
+  /* 항목 — 글자·높이를 키워 선명하게 */
+  #recCfg .rc-row{
+    height:46px;padding:0 12px;gap:10px;border-radius:11px;overflow:hidden;
+    background:#101a25;border:1px solid #2b3b53;color:#c9d7e8;
+    font-size:13px;font-weight:800;white-space:nowrap;
+  }
+  #recCfg .rc-row > span{font-size:12.5px;font-weight:900;letter-spacing:0;color:#9fb0c6}
+  #recCfg .rc-row input[type=range]{flex:1 1 auto;min-width:60px;height:24px}
+  #recCfg #recScaleVal{flex:0 0 48px;text-align:right;color:#dbe9ff;font-size:14px;font-weight:900}
+  #recCfg .rc-preset{gap:8px}
+  #recCfg .rc-ps{
+    flex:1 1 0;width:auto;min-width:0;height:38px;padding:0 8px;border-radius:9px;
+    border:1px solid #33465f;background:#0b1420;color:#b9c9de;
+    font-size:13.5px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;
+  }
+  #recCfg .rc-ps.on{
+    background:rgba(59,130,246,.24);border-color:rgba(96,165,250,.85);color:#eaf4ff;
+    box-shadow:inset 0 0 0 1px rgba(59,130,246,.30);
+  }
+  #recCfg .rc-tog{
+    height:46px;padding:0 12px;border-radius:11px;gap:9px;
+    background:#101a25;border:1px solid #2b3b53;color:#dbe7f6;
+    font-size:13.5px;font-weight:800;
+  }
+  #recCfg .rc-tog input{width:19px;height:19px}
+  #recCfg #recCtl > button{
+    width:100%;flex:0 0 auto;min-width:0;height:46px;padding:0 10px;border-radius:11px;
+    border:1px solid #2b3b53;background:#16212e;color:#e6eefb;font-size:14px;font-weight:900;
+  }
+  #recCfg #recCtl > button:active{transform:translateY(1px);background:#1e2b3a}
+  #recCfg #recMic.on{
+    background:rgba(16,232,117,.14);border-color:rgba(16,232,117,.55);color:#a9f7cb;
+  }
+  #recCfg #recFs{
+    height:46px!important;font-size:14px!important;
+    background:#101a25!important;border-color:#2b3b53!important;color:#b9c9de!important;
+  }
+  #recCfg #recFs.on{
+    background:rgba(59,130,246,.20)!important;border-color:rgba(59,130,246,.60)!important;color:#cfe4ff!important;
+  }
+  #recCfg #recRoom{
+    flex:1 1 auto;min-width:0;height:38px;padding:0 10px;border-radius:9px;
+    background:#070c13;border:1px solid #2b3b53;color:#eaf2fd;
+    font-size:15px;font-weight:900;letter-spacing:.18em;text-align:center;text-transform:uppercase;
+  }
+  #recCfg #recCtl .rc-mini{
+    width:auto;flex:0 0 auto;height:38px;padding:0 14px;font-size:13.5px;
+    border-radius:9px;background:#1b2a3d;border-color:#3d5372;color:#dbe7f6;
+  }
   #recCfg #recInfo{
-    position:static;left:auto;top:auto;max-width:none;font-size:11px;line-height:1.55;
-    color:#8b9ab0;padding:2px 1px 0;text-shadow:none;
+    position:static;left:auto;top:auto;max-width:none;
+    font-size:12.5px;line-height:1.5;font-weight:700;color:#9fb0c6;
+    padding:0 2px;text-shadow:none;
   }
+  #recCfg #recBack{
+    height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    border:1px solid #3d5372;background:#16212e;color:#c9d7e8;
+    font-size:13.5px;font-weight:900;text-decoration:none;
+  }
+  /* 모달이 열려 있으면 토스트는 백드롭 위로 */
+  body.rec-cfg-open #recToast{z-index:11}
+  /* 좁은 세로 폰(<=420px) — 한 화면에 모두 들어오도록 살짝 압축 */
+  @media (max-width:420px){
+    #recCfg #recCtl{gap:8px}
+    #recCfg .rc-row{height:42px}
+    #recCfg .rc-tog{height:42px}
+    #recCfg #recCtl > button{height:44px}
+    #recCfg #recBack{height:42px}
+  }
+  /* 짧은 가로 화면(폰 가로 360~412px 높이) — 압축 배치로 스크롤 없이 한눈에 */
+  @media (max-height:540px) and (orientation:landscape){
+    .rcfg-head{padding:6px 12px}
+    .rcfg-head b{font-size:14.5px}
+    #recCfgClose{height:34px;min-width:78px;padding:0 11px;font-size:13px}
+    .rcfg-body{padding:8px 10px 10px}
+    #recCfg #recCtl{gap:6px}
+    #recCfg .rc-row{height:34px;padding:0 10px;gap:8px;border-radius:9px;font-size:12px}
+    #recCfg .rc-row > span{font-size:11.5px}
+    #recCfg .rc-ps{height:30px;font-size:12px;padding:0 6px}
+    #recCfg .rc-tog{height:34px;padding:0 10px;border-radius:9px;gap:7px;font-size:12px}
+    #recCfg .rc-tog input{width:16px;height:16px}
+    #recCfg #recCtl > button{height:34px;border-radius:9px;font-size:12.5px}
+    #recCfg #recFs{height:34px!important;font-size:12.5px!important}
+    #recCfg #recRoom{height:30px;font-size:13px}
+    #recCfg #recCtl .rc-mini{height:30px;padding:0 11px;font-size:12px}
+    #recCfg #recInfo{font-size:11px;line-height:1.4}
+    .rcfg-stat{height:24px;padding:0 9px;font-size:11px}
+    #recCfg #recBack{height:34px;font-size:12px}
+    #recCfg #recScaleVal{flex:0 0 42px;font-size:12px}
+    /* 마지막 줄은 [파일명·코덱 안내 | 컨트롤 화면으로] 나란히 → 한 행 절약 */
+    #recCfg #recCtl > .rc-pair{grid-column:auto}
+  }
+
   /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
   #recRotate{
     position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:7;
@@ -2123,23 +2245,30 @@ apply(DATA);
     <button id="recStop" type="button" disabled>■ 정지</button>
   </div>
 
-  <!-- ③ ⚙️ 레코더 설정 서랍 — 세부 옵션은 여기에 접어 둔다 -->
-  <div id="recCfg" hidden role="dialog" aria-label="레코더 설정">
-    <div class="rcfg-head"><b>⚙️ 레코더 설정</b><button id="recCfgClose" type="button" aria-label="설정 닫기">✕</button></div>
-    <div id="recCtl">
-      <div class="rc-row rc-preset" id="recPreset" role="group" aria-label="화질 설정">
-        <span>화질</span>
-        <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
-        <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
+  <!-- ③ ⚙️ 레코더 설정 — 화면 중앙 모달 (v2-14.4 cfg modal) -->
+  <div id="recCfg" hidden role="dialog" aria-modal="true" aria-label="레코더 설정">
+    <div class="rcfg-card">
+      <div class="rcfg-head">
+        <b>⚙️ 레코더 설정</b>
+        <button id="recCfgClose" type="button" aria-label="설정 닫기">✕ 닫기</button>
       </div>
-      <div class="rc-row"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
-      <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
-      <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
-      <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
-      <button id="recFs" type="button">⛶ 전체화면</button>
-      <div class="rc-row room"><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
-      <div id="recInfo"></div>
-      <a id="recBack" href="?">✕ 컨트롤 화면으로</a>
+      <div class="rcfg-body" id="recCfgBody">
+        <div id="recCtl">
+          <div class="rc-row rc-preset rc-span2" id="recPreset" role="group" aria-label="화질 설정">
+            <span>화질</span>
+            <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
+            <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
+          </div>
+          <div class="rc-row rc-span2"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
+          <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
+          <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
+          <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
+          <button id="recFs" type="button">⛶ 전체화면</button>
+          <div class="rc-row room rc-span2"><span id="recCfgStat" class="rcfg-stat">📡 끔</span><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
+          <div id="recInfo" class="rc-span2 rc-pair"></div>
+          <a id="recBack" href="?" class="rc-span2 rc-pair">✕ 컨트롤 화면으로</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4491,7 +4620,7 @@ apply(DATA);
                '· 아직 진행하지 않은 쿼터는 —로 표시하고, 팀 전적은 기록이 없는 경기를 빼고 집계합니다.<br>' +
                '· 점수가 바뀌면 이 창도 즉시 갱신됩니다(직접 호출 + postMessage + 400ms 폴링).</p>';
 
-    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.3</span><span>' +
+    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.4</span><span>' +
                (M.three ? '3파전 · 매치업 × 쿼터' : '2파전 · 경기 G1~G4 × 쿼터') + '</span></div>';
 
     var tpl = document.getElementById('resClientTpl');
@@ -5503,6 +5632,11 @@ apply(DATA);
       if(stxt) stxt.textContent = '📡 ' + (RM.room || '—') + (RM.on && RM.status === 'online' ? ' · ' + st : (RM.on ? ' · ' + st : ''));
       sync.setAttribute('aria-label', '방 코드 ' + (RM.room || '—') + ' · ' + st);
     }
+    var cstat = $('recCfgStat');                      // v2-14.4 설정 모달: 방 코드 줄 연결 상태 칩
+    if(cstat){
+      cstat.textContent = '📡 ' + st;
+      cstat.className = 'rcfg-stat' + (RM.on ? (RM.status === 'online' ? ' on' : ' wait') : '');
+    }
     /* 📱 가로 회전 권장 배지 — 녹화 전 + 세로 화면일 때만 */
     var rot = $('recRotate');
     if(rot) rot.hidden = !((window.innerHeight || 0) > (window.innerWidth || 0) && !REC.on);
@@ -6210,16 +6344,24 @@ apply(DATA);
     setTimeout(function(){ recLockLandscape(); recOrient(); }, 320);
     setTimeout(function(){ recLockLandscape(); recOrient(); }, 1100);
   }
+  /* v2-14.4 설정 모달 — 열 때 본문을 맨 위로, 닫을 때 상태를 되돌린다 */
   function recCfgShow(on){
     var c = $('recCfg');
     var next = !!on && !REC.on;
     if(c){
       if(c.hidden === !next) return;
       c.hidden = !next;
+      c.setAttribute('aria-hidden', next ? 'false' : 'true');
     }
     document.body.classList.toggle('rec-cfg-open', next);
     var b = $('recCfgBtn');
     if(b) b.setAttribute('aria-expanded', next ? 'true' : 'false');
+    var bd = $('recCfgBody');
+    if(bd) bd.scrollTop = 0;
+    if(next){
+      var cl = $('recCfgClose');
+      if(cl && cl.focus){ try { cl.focus({ preventScroll: true }); } catch(e){ try { cl.focus(); } catch(e2){} } }
+    }
     recPlaceBar();
   }
   /* 카메라 오류 안내 (프리뷰·녹화 시작 공용) */
@@ -6266,6 +6408,11 @@ apply(DATA);
     if(cfgBtn) cfgBtn.addEventListener('click', function(){ recCfgShow($('recCfg') && $('recCfg').hidden); });
     var cfgClose = $('recCfgClose');
     if(cfgClose) cfgClose.addEventListener('click', function(){ recCfgShow(false); });
+    /* 백드롭(카드 바깥) 클릭으로도 닫는다 */
+    var cfgBox = $('recCfg');
+    if(cfgBox) cfgBox.addEventListener('click', function(e){
+      if(e.target === cfgBox) recCfgShow(false);
+    });
     var syncBtn = $('recSync');
     if(syncBtn) syncBtn.addEventListener('click', function(){ recCfgShow(true); });
     var exit = $('recExit');
@@ -6406,6 +6553,7 @@ apply(DATA);
     /* 키보드: Space 녹화 시작/일시정지 · S 정지 */
     document.addEventListener('keydown', function(e){
       if(!recMode) return;
+      if($('recCfg') && !$('recCfg').hidden) return;   /* v2-14.4: 설정 모달이 열려 있으면 단축키 무시 */
       var t = e.target;
       if(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
       if(e.key === ' '){ e.preventDefault(); if(!REC.on) recStart(); else (REC.paused ? recResume() : recPause()); }
