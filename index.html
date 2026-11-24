@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.6</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.7</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
 <script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
 <style>
@@ -1650,6 +1650,21 @@
     #recCfg #recCtl{gap:4px}
   }
 
+  /* v2-14.7 화질·FPS 분리 — 가로(>=540px)에서는 '화질'·'FPS' 두 칸이 나란히, 세로에서는 한 줄씩 */
+  #recCfg #recQuality, #recCfg #recFps{gap:8px;padding:0 10px}
+  #recCfg #recQuality > span, #recCfg #recFps > span{flex:0 0 auto}
+  #recCfg #recQuality .rc-ps, #recCfg #recFps .rc-ps{font-size:13px;padding:0 6px}
+  /* v2-14.7 비트레이트 3단계 — 390px 세로에서도 8/12/16Mbps 가 한 줄에 잘리지 않게 */
+  #recCfg #recBitrate{gap:6px}
+  #recCfg #recBitrate .rc-ps{font-size:12.5px;padding:0 4px;letter-spacing:-.02em}
+  @media (max-height:540px) and (orientation:landscape){
+    #recCfg #recQuality .rc-ps, #recCfg #recFps .rc-ps{font-size:12px}
+    #recCfg #recBitrate .rc-ps{font-size:12px}
+  }
+  @media (max-width:420px){
+    #recCfg #recBitrate .rc-ps{font-size:12px}
+  }
+
   /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
   #recRotate{
     position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:7;
@@ -1822,6 +1837,8 @@ apply(DATA);
   · v2-14: 블랙 팀 실버 테두리 · 설정 보정 항목 삭제 + 휘슬 통일 · 3파전 순서 변경 · 📺 출력 라벨
   · v2-14: ?mode=record — 후면 카메라 + 하단 스코어바 합성 + MediaRecorder 저장 (화질 1080p 30fps 기본 / 720p 60fps 전환)
   · v2-14.5: 🎞️ 영상 비트레이트 선택 — 표준 8Mbps(기본) / 고화질 14Mbps (localStorage 기억 · 녹화 중 변경 잠금)
+  · v2-14.7: 🖼️ 화질(1080p/720p) · 🎞️ FPS(30/60) 분리 + 비트레이트 3단계(8/12/16Mbps) (localStorage 기억 · 녹화 중 잠금)
+  · v2-14.7: ✨ 스포츠 화질 보정(기본 ON) — 카메라 프레임에만 대비·윤곽 보정, 스포츠 맞춤 / 📷 연속 초점·노출·WB 고정
   · v2-14.6: 🎬 코덱 선택 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 미지원 기기 자동 H.264 폴백) (localStorage 기억 · 녹화 중 잠금)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
@@ -2279,15 +2296,22 @@ apply(DATA);
       </div>
       <div class="rcfg-body" id="recCfgBody">
         <div id="recCtl">
-          <div class="rc-row rc-preset rc-span2" id="recPreset" role="group" aria-label="화질 설정">
+          <!-- v2-14.7 quality/fps split — 화질과 FPS 를 따로 고른다 (가로에서는 두 칸이 나란히) -->
+          <div class="rc-row rc-preset rc-span1" id="recQuality" role="group" aria-label="화질 설정">
             <span>화질</span>
-            <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
-            <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
+            <button type="button" class="rc-ps" data-quality="1080p" aria-pressed="true">1080p</button>
+            <button type="button" class="rc-ps" data-quality="720p" aria-pressed="false">720p</button>
           </div>
-          <div class="rc-row rc-preset rc-span2" id="recBitrate" role="group" aria-label="비트레이트 설정"><!-- v2-14.5 bitrate -->
+          <div class="rc-row rc-preset rc-span1" id="recFps" role="group" aria-label="FPS 설정">
+            <span>FPS</span>
+            <button type="button" class="rc-ps" data-fps="30" aria-pressed="true">30fps</button>
+            <button type="button" class="rc-ps" data-fps="60" aria-pressed="false">60fps</button>
+          </div>
+          <div class="rc-row rc-preset rc-span2" id="recBitrate" role="group" aria-label="비트레이트 설정"><!-- v2-14.5 bitrate · v2-14.7 3단계 -->
             <span>비트레이트</span>
-            <button type="button" class="rc-ps" data-bps="8000000" aria-pressed="true">표준 8Mbps</button>
-            <button type="button" class="rc-ps" data-bps="14000000" aria-pressed="false">고화질 14Mbps</button>
+            <button type="button" class="rc-ps" data-bps="8000000" aria-pressed="true" title="표준 8Mbps · 파일이 가볍습니다">8Mbps</button>
+            <button type="button" class="rc-ps" data-bps="12000000" aria-pressed="false" title="권장 12Mbps · 선명함과 파일 크기의 균형">12Mbps</button>
+            <button type="button" class="rc-ps" data-bps="16000000" aria-pressed="false" title="고화질 16Mbps · 가장 선명하고 파일이 큽니다">16Mbps</button>
           </div>
           <div class="rc-row rc-preset rc-span2" id="recCodec" role="group" aria-label="코덱 설정"><!-- v2-14.6 codec -->
             <span>코덱</span>
@@ -2295,7 +2319,8 @@ apply(DATA);
             <button type="button" class="rc-ps" data-codec="hevc" aria-pressed="false">HEVC (H.265)</button>
           </div>
           <div class="rc-row rc-span2"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
-          <label class="rc-tog rc-span2"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
+          <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
+          <label class="rc-tog" id="recFilterLbl" title="스포츠 맞춤 대비 · 선명한 윤곽과 살짝 밝은 톤"><input id="recFilter" type="checkbox" checked> ✨ 스포츠 화질 보정</label>
           <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
           <button id="recFs" type="button">⛶ 전체화면</button>
           <div class="rc-row room rc-span2"><span id="recCfgStat" class="rcfg-stat">📡 끔</span><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
@@ -2338,7 +2363,7 @@ apply(DATA);
     <input id="rpLink" readonly aria-label="오버레이 링크">
     <button class="rp-mini" data-rp="copy" type="button">복사</button>
   </div>
-  <button class="rp-mini rp-wide" data-rp="record" type="button">🎥 녹화 모드 열기 (1080p30 · 720p60)</button>
+  <button class="rp-mini rp-wide" data-rp="record" type="button">🎥 녹화 모드 열기 (1080p/720p · 30/60fps)</button>
   <button class="rp-mini rp-wide" data-rp="open" type="button">새 창에서 오버레이 열기</button>
   <button class="rp-mini rp-wide" data-rp="obs" type="button">이 화면을 오버레이로 전환 (배경 투명)</button>
   <p class="rp-foot">다른 기기에서 같은 파일을 열고 <b id="rpUrlHint">?mode=obs&amp;room=STEP</b> 로 접속하거나, 그 기기에서 <b>📡 → 방 코드 입력 → 📥 수신</b>을 켜면 실시간으로 따라갑니다.</p>
@@ -4654,7 +4679,7 @@ apply(DATA);
                '· 아직 진행하지 않은 쿼터는 —로 표시하고, 팀 전적은 기록이 없는 경기를 빼고 집계합니다.<br>' +
                '· 점수가 바뀌면 이 창도 즉시 갱신됩니다(직접 호출 + postMessage + 400ms 폴링).</p>';
 
-    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.6</span><span>' +
+    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.7</span><span>' +
                (M.three ? '3파전 · 매치업 × 쿼터' : '2파전 · 경기 G1~G4 × 쿼터') + '</span></div>';
 
     var tpl = document.getElementById('resClientTpl');
@@ -5271,7 +5296,8 @@ apply(DATA);
   /* =====================================================================
      🎥 녹화 모드 (?mode=record) — 후면 카메라 + 하단 스코어바 합성 + MediaRecorder 저장
      · 화면 전체 16:9 캔버스에 카메라를 cover 로 그리고, 하단에 콤팩트 스코어바를 매 프레임 합성
-     · 🎚️ 화질 프리셋: 1080p 30fps(기본) / 720p 60fps — 캔버스 해상도·카메라 요청·captureStream fps·비트레이트를 함께 바꾼다
+     · 🖼️ 화질: 1080p(기본) / 720p — 캔버스 해상도·카메라 요청 크기를 바꾼다
+     · 🎞️ FPS: 30fps(기본) / 60fps — 카메라 요청 프레임·captureStream fps 를 바꾼다 (화질과 독립, 4조합 모두 동작)
        (스코어바는 1920×1080 기준 좌표계로 그린 뒤 배율만 바꿔 720p 에서도 상대 크기·비율이 1080p 와 같다)
      · 스코어바 크기 70%~130% 슬라이더(실시간)
      · ● 녹화 시작 / ⏸ 일시정지(▶ 재개) / ■ 정지(저장) + REC 경과 시간
@@ -5290,8 +5316,10 @@ apply(DATA);
     lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0,
     codec:'h264', fellBack:false,      // codec: 🎬 'h264'(기본 · 호환성 우선) / 'hevc'(H.265 고효율 · 미지원 기기 자동 폴백)
     hevc:false,                        // (호환) codec === 'hevc' 미러
-    preset:'1080p30',                  // 🎚️ 화질 프리셋 — '1080p30'(기본) / '720p60'
-    bps:8000000,                       // 🎞️ 영상 비트레이트 — 8000000(표준 8Mbps) / 14000000(고화질 14Mbps)
+    quality:'1080p',                   // 🖼️ 화질 — '1080p'(기본) / '720p' (캔버스·카메라 해상도)
+    fps:30,                            // 🎞️ FPS — 30(기본) / 60 (카메라 요청·captureStream 프레임)
+    bps:8000000,                       // 🎞️ 영상 비트레이트 — 8000000(8Mbps·기본) / 12000000(12Mbps) / 16000000(16Mbps)
+    filterOn:true,                     // ✨ 스포츠 화질 보정 — 카메라 프레임에만 대비·윤곽을 살짝 올린다(기본 ON)
     camW:0, camH:0, camFps:0           // 실제로 열린 카메라의 해상도·프레임(요청과 다를 수 있어 표시용으로 보관)
   };
   var REC_CODEC_KEY = 'bball_sb2_rec_codec';
@@ -5301,18 +5329,36 @@ apply(DATA);
     hevc: { id:'hevc', label:'HEVC (H.265)', note:'고효율 압축 · 미지원 기기에서는 H.264로 저장됩니다' }
   };
   var REC_DEFAULT_CODEC = 'h264';
-  var REC_PRESET_KEY = 'bball_sb2_rec_preset';
-  /* 🎚️ 화질 프리셋 — 캔버스 해상도 · 카메라 요청 · captureStream fps · 비트레이트를 한 벌로 묶는다 */
-  var REC_PRESETS = {
-    '1080p30': { id:'1080p30', w:1920, h:1080, fps:30, vbps:8000000, label:'1080p 30fps', note:'화면이 더 선명합니다' },
-    '720p60' : { id:'720p60',  w:1280, h:720,  fps:60, vbps:8000000, label:'720p 60fps',  note:'움직임이 더 부드럽습니다' }
+  /* 🖼️ 화질 — 캔버스 해상도·카메라 요청 크기만 정한다 (FPS 와 독립) */
+  var REC_QUALITY_KEY = 'bball_sb2_rec_quality';
+  var REC_QUALITIES = {
+    '1080p': { id:'1080p', w:1920, h:1080, label:'1080p', note:'화면이 더 선명합니다' },
+    '720p' : { id:'720p',  w:1280, h:720,  label:'720p',  note:'파일이 더 가볍습니다' }
   };
-  var REC_DEFAULT_PRESET = '1080p30';
+  var REC_DEFAULT_QUALITY = '1080p';
+  /* 🎞️ FPS — 카메라 요청·captureStream 프레임만 정한다 (화질과 독립) */
+  var REC_FPS_KEY = 'bball_sb2_rec_fps';
+  var REC_FPS_OPTS = { 30: { v:30, label:'30fps', note:'파일이 더 가볍고 호환성이 좋습니다' },
+                       60: { v:60, label:'60fps', note:'움직임이 더 부드럽습니다' } };
+  var REC_DEFAULT_FPS = 30;
+  /* (호환) 옛 화질 프리셋 이름 · 저장 키 — 처음 열 때 화질·FPS 로 나눠 이어받는다 */
+  var REC_PRESET_KEY = 'bball_sb2_rec_preset';
+  var REC_PRESETS = {
+    '1080p30': { id:'1080p30', w:1920, h:1080, fps:30, label:'1080p 30fps' },
+    '1080p60': { id:'1080p60', w:1920, h:1080, fps:60, label:'1080p 60fps' },
+    '720p30' : { id:'720p30',  w:1280, h:720,  fps:30, label:'720p 30fps'  },
+    '720p60' : { id:'720p60',  w:1280, h:720,  fps:60, label:'720p 60fps'  }
+  };
+  /* ✨ 스포츠 화질 보정 — 캔버스에 카메라 프레임을 그릴 때만 거는 필터(스코어바는 영향 없음)
+     실내 코트(LED 조명)·빠른 움직임에서 과한 채도 없이 윤곽과 대비를 살리고 톤을 살짝 밝게 */
+  var REC_FILTER_KEY = 'bball_sb2_rec_filter';
+  var REC_FILTER_CSS = 'contrast(1.10) saturate(1.06) brightness(1.03)';
   var REC_BPS_KEY = 'bball_sb2_rec_bps';
   /* 🎞️ 영상 비트레이트 — 해상도·fps(화질 프리셋)와 별개로 파일 크기와 디테일을 정한다 */
   var REC_BPS = {
     8000000 : { v:8000000,  label:'8Mbps',  note:'표준 화질 · 파일이 가볍습니다' },
-    14000000: { v:14000000, label:'14Mbps', note:'고화질 · 더 선명하고 파일이 큽니다' }
+    12000000: { v:12000000, label:'12Mbps', note:'권장 화질 · 선명함과 파일 크기의 균형' },
+    16000000: { v:16000000, label:'16Mbps', note:'고화질 · 가장 선명하고 파일이 큽니다' }
   };
   var REC_DEFAULT_BPS = 8000000;
   var recCanvas = null, recCtx = null, recVideoEl = null, recRaf = 0;
@@ -5338,8 +5384,13 @@ apply(DATA);
   window.__recFileBase = recFileBase;
 
   /* ---------------- 🎚️ 화질 프리셋 (1080p 30fps 기본 / 720p 60fps) ---------------- */
-  function recPresetDef(id){ return REC_PRESETS[id] || REC_PRESETS[REC_DEFAULT_PRESET]; }
-  function recP(){ return recPresetDef(REC.preset); }
+  function recQualityDef(id){ return REC_QUALITIES[id] || REC_QUALITIES[REC_DEFAULT_QUALITY]; }
+  function recFpsVal(){ return (REC.fps === 60) ? 60 : REC_DEFAULT_FPS; }
+  /* 화질 × FPS 실제 조합 — 캔버스 해상도(화질) · 카메라 요청(화질+FPS) · captureStream(FPS) 이 함께 쓴다 */
+  function recP(){
+    var q = recQualityDef(REC.quality), f = recFpsVal();
+    return { id: q.id + f, w: q.w, h: q.h, fps: f, label: q.label + ' ' + f + 'fps', note:q.note };
+  }
   function recApplyCanvas(){
     var p = recP();
     if(!recCanvas) return;
@@ -5348,12 +5399,25 @@ apply(DATA);
       recCanvas.height = p.h;
     }
   }
-  function recPaintPreset(){
-    var wrap = $('recPreset');
+  function recPaintQuality(){
+    var wrap = $('recQuality');
     if(!wrap) return;
     var btns = wrap.querySelectorAll('.rc-ps');
+    var cur = recQualityDef(REC.quality).id;
     for(var i = 0; i < btns.length; i++){
-      var on = (btns[i].getAttribute('data-preset') === REC.preset);
+      var on = (btns[i].getAttribute('data-quality') === cur);
+      btns[i].classList.toggle('on', on);
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      btns[i].disabled = !!REC.on;                // 녹화 중에는 전환 금지
+    }
+  }
+  function recPaintFps(){
+    var wrap = $('recFps');
+    if(!wrap) return;
+    var btns = wrap.querySelectorAll('.rc-ps');
+    var cur = String(recFpsVal());
+    for(var i = 0; i < btns.length; i++){
+      var on = (btns[i].getAttribute('data-fps') === cur);
       btns[i].classList.toggle('on', on);
       btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
       btns[i].disabled = !!REC.on;                // 녹화 중에는 전환 금지
@@ -5367,6 +5431,26 @@ apply(DATA);
       var st = (tr && tr.getSettings) ? tr.getSettings() : {};
       REC.camW = st.width || 0; REC.camH = st.height || 0; REC.camFps = st.frameRate || 0;
     } catch(e){}
+  }
+
+  /* 📷 연속 초점·노출·화이트밸런스 — 지원 기기면 켜서 흐림·색 흔들림을 줄이고,
+     요청 fps(30/60)가 떨어지지 않도록 frameRate 도 함께 고정한다 (미지원 기기는 그대로) */
+  function recApplyFocus(stream){
+    try {
+      var tr = stream && stream.getVideoTracks && stream.getVideoTracks()[0];
+      if(!tr || !tr.getCapabilities || !tr.applyConstraints) return false;
+      var caps = tr.getCapabilities() || {}, adv = {};
+      if(caps.focusMode && caps.focusMode.indexOf && caps.focusMode.indexOf('continuous') >= 0) adv.focusMode = 'continuous';
+      if(caps.exposureMode && caps.exposureMode.indexOf && caps.exposureMode.indexOf('continuous') >= 0) adv.exposureMode = 'continuous';
+      if(caps.whiteBalanceMode && caps.whiteBalanceMode.indexOf && caps.whiteBalanceMode.indexOf('continuous') >= 0) adv.whiteBalanceMode = 'continuous';
+      var want = recP().fps;
+      if(caps.frameRate && caps.frameRate.max && want <= caps.frameRate.max){
+        adv.frameRate = Math.max(want, (caps.frameRate.min || 0));
+      }
+      if(!adv.focusMode && !adv.exposureMode && !adv.whiteBalanceMode && !adv.frameRate) return false;
+      tr.applyConstraints({ advanced: [adv] }).then(function(){ recCamSettings(); recPaint(); }).catch(function(){});
+      return true;
+    } catch(e){ return false; }
   }
 
   /* ---------------- 스코어바 그리기 (1920×1080 캔버스) ---------------- */
@@ -5600,7 +5684,9 @@ apply(DATA);
       var vw = v.videoWidth, vh = v.videoHeight;
       var s = Math.max(DW / vw, DH / vh);
       var dw = vw * s, dh = vh * s;
+      ctx.filter = REC.filterOn ? REC_FILTER_CSS : 'none';   // ✨ 스포츠 화질 보정 — 카메라 프레임에만
       ctx.drawImage(v, (DW - dw) / 2, (DH - dh) / 2, dw, dh);
+      ctx.filter = 'none';                                   // 스코어바·글자는 원래 색 그대로
       REC.video.w = vw; REC.video.h = vh;
     } else {
       var gr = ctx.createLinearGradient(0, 0, 0, DH);
@@ -5657,7 +5743,8 @@ apply(DATA);
       stopBtn.disabled = !REC.on;
       stopBtn.classList.toggle('on', !!REC.on);
     }
-    recPaintPreset();
+    recPaintQuality();                             // v2-14.7: 화질·FPS 버튼을 따로 갱신(잠금 포함)
+    recPaintFps();
     recPaintBitrate();                             // v2-14.5: 녹화 시작/정지에 맞춰 비트레이트 버튼 잠금·해제
     recPaintCodec();                               // v2-14.6: 코덱 버튼도 같은 규칙으로 잠금·해제
     var info = $('recInfo');
@@ -5769,6 +5856,7 @@ apply(DATA);
         });
       } catch(e){ recCamError(e); return; }
     }
+    if(REC.cam) recApplyFocus(REC.cam);   // 📷 녹화 직전에도 초점·노출·WB·fps 를 다시 고정
     if($('recErr')) $('recErr').hidden = true;
     try {
       recVideoEl.srcObject = REC.cam;
@@ -5899,23 +5987,73 @@ apply(DATA);
     }
     return true;
   }
-  /* 🎚️ 화질 전환 — 녹화 중에는 막고, 대기 중이면 캔버스·다음 녹화 설정을 새 프리셋으로 바꾼다 */
-  function recSetPreset(id, silent){
-    var p = REC_PRESETS[id];
-    if(!p) return false;
+  /* 🖼️ 화질 전환 — 녹화 중에는 막고, 대기 중이면 캔버스·다음 녹화 설정을 새 해상도로 바꾼다 */
+  function recSetQuality(id, silent){
+    var q = REC_QUALITIES[id];
+    if(!q) return false;
     if(REC.on){
-      recPaintPreset();
-      recToast('녹화 중에는 화질을 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
+      recPaintQuality(); recPaintFps();
+      recToast('녹화 중에는 화질·FPS를 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
       return false;
     }
-    REC.preset = id;
-    try { localStorage.setItem(REC_PRESET_KEY, id); } catch(e){}
+    REC.quality = id;
+    try { localStorage.setItem(REC_QUALITY_KEY, id); } catch(e){}
     REC.video.w = 0; REC.video.h = 0; REC.camW = 0; REC.camH = 0; REC.camFps = 0;
     recApplyCanvas();
-    recPaintPreset();
+    recPaintQuality();
     recPaint();
-    if(!silent) recToast('화질 ' + p.label + ' · ' + p.note, 2600);
-    if(REC.cam) recRestartCam();          // 대기 중 미리보기가 켜져 있으면 새 해상도·프레임으로 다시 연다
+    if(!silent) recToast('화질 ' + q.label + ' · ' + q.note + ' · ' + recP().label, 2600);
+    if(REC.cam) recRestartCam();          // 대기 중 미리보기가 켜져 있으면 새 해상도로 다시 연다
+    return true;
+  }
+  /* 🎞️ FPS 전환 — 화질과 독립. 캔버스 해상도는 그대로 두고 카메라 요청·녹화 프레임만 바꾼다 */
+  function recSetFps(v, silent){
+    v = parseInt(v, 10);
+    if(v !== 30 && v !== 60) return false;
+    if(REC.on){
+      recPaintQuality(); recPaintFps();
+      recToast('녹화 중에는 화질·FPS를 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
+      return false;
+    }
+    REC.fps = v;
+    try { localStorage.setItem(REC_FPS_KEY, String(v)); } catch(e){}
+    REC.camW = 0; REC.camH = 0; REC.camFps = 0;
+    recPaintFps();
+    recPaint();
+    if(!silent) recToast('FPS ' + v + 'fps · ' + (REC_FPS_OPTS[v] || {}).note + ' · ' + recP().label, 2600);
+    if(REC.cam) recRestartCam();          // 대기 중 미리보기를 새 프레임으로 다시 연다
+    return true;
+  }
+  /* (호환) 옛 화질 프리셋 이름('1080p30' 등) → 화질 + FPS 로 나눠 한 번에 적용 */
+  function recSetPreset(id, silent){
+    var m = /^(1080p|720p)(30|60)$/.exec(String(id || ''));
+    if(!m) return false;
+    if(REC.on){
+      recPaintQuality(); recPaintFps();
+      recToast('녹화 중에는 화질·FPS를 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
+      return false;
+    }
+    REC.quality = m[1]; REC.fps = parseInt(m[2], 10);
+    try { localStorage.setItem(REC_QUALITY_KEY, REC.quality); localStorage.setItem(REC_FPS_KEY, String(REC.fps)); } catch(e){}
+    REC.video.w = 0; REC.video.h = 0; REC.camW = 0; REC.camH = 0; REC.camFps = 0;
+    recApplyCanvas();
+    recPaintQuality(); recPaintFps();
+    recPaint();
+    if(!silent) recToast('화질 ' + recP().label, 2200);
+    if(REC.cam) recRestartCam();
+    return true;
+  }
+  /* ✨ 스포츠 화질 보정 ON/OFF — 녹화 중에도 바로 반영(그리는 필터일 뿐 스트림 설정은 그대로) */
+  function recSetFilter(on, silent){
+    REC.filterOn = !!on;
+    try { localStorage.setItem(REC_FILTER_KEY, REC.filterOn ? '1' : '0'); } catch(e){}
+    var box = $('recFilter');
+    if(box){
+      box.checked = REC.filterOn;
+      var lbl = box.parentNode;
+      if(lbl && lbl.classList) lbl.classList.toggle('on', REC.filterOn);
+    }
+    if(!silent) recToast(REC.filterOn ? '✨ 스포츠 화질 보정 ON · 윤곽·대비를 살짝 올립니다' : '화질 보정 OFF · 카메라 원본 그대로', 2600);
     return true;
   }
   function recRestartCam(){
@@ -5928,6 +6066,7 @@ apply(DATA);
     }).then(function(s){
       if(REC.on){ try { s.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} return; }   // 그 사이 녹화가 시작됐으면 버린다
       REC.cam = s;
+      recApplyFocus(s);                     // 📷 새 해상도·fps 로 다시 연 카메라에도 초점·노출 고정
       if(recVideoEl){
         try { recVideoEl.srcObject = s; recVideoEl.play().catch(function(){}); } catch(e){}
       }
@@ -6513,6 +6652,7 @@ apply(DATA);
     }).then(function(s){
       if(REC.on){ try { s.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} return; }
       REC.cam = s;
+      recApplyFocus(s);                     // 📷 연속 초점·노출·화이트밸런스
       REC.previewErr = '';
       try { if(recVideoEl){ recVideoEl.srcObject = s; recVideoEl.play().catch(function(){}); } } catch(e){}
       REC.ready = true;
@@ -6574,24 +6714,51 @@ apply(DATA);
     recCtx = recCanvas.getContext('2d');
     document.body.classList.add('record-mode');
     $('recWrap').hidden = false;
-    /* 🎚️ 화질 프리셋 복원 — 저장된 값이 없으면 1080p 30fps(기본) */
+    /* 🖼️🎞️ 화질·FPS 복원 — 저장값이 없으면 1080p 30fps(기본)
+       옛 프리셋 키(1080p30 / 720p60)만 있으면 화질·FPS 로 나눠 이어받고 새 키로 옮긴다 */
     try {
-      var sp = localStorage.getItem(REC_PRESET_KEY);
-      REC.preset = REC_PRESETS[sp] ? sp : REC_DEFAULT_PRESET;
-    } catch(e){ REC.preset = REC_DEFAULT_PRESET; }
-    recApplyCanvas();
-    recPaintPreset();
-    var pWrap = $('recPreset');
-    if(pWrap){
-      var pBtns = pWrap.querySelectorAll('.rc-ps');
-      for(var pi = 0; pi < pBtns.length; pi++){
-        pBtns[pi].addEventListener('click', function(){ recSetPreset(this.getAttribute('data-preset')); });
+      var sq = String(localStorage.getItem(REC_QUALITY_KEY) || '');
+      var sf = parseInt(localStorage.getItem(REC_FPS_KEY), 10);
+      if(!REC_QUALITIES[sq] || (sf !== 30 && sf !== 60)){
+        var spOld = String(localStorage.getItem(REC_PRESET_KEY) || '');
+        var mOld = /^(1080p|720p)(30|60)$/.exec(spOld);
+        if(mOld){ sq = mOld[1]; sf = parseInt(mOld[2], 10); }
       }
+      REC.quality = REC_QUALITIES[sq] ? sq : REC_DEFAULT_QUALITY;
+      REC.fps = (sf === 60) ? 60 : REC_DEFAULT_FPS;
+      localStorage.setItem(REC_QUALITY_KEY, REC.quality);
+      localStorage.setItem(REC_FPS_KEY, String(REC.fps));
+    } catch(e){ REC.quality = REC_DEFAULT_QUALITY; REC.fps = REC_DEFAULT_FPS; }
+    recApplyCanvas();
+    recPaintQuality(); recPaintFps();
+    var qWrap = $('recQuality');
+    if(qWrap){
+      var qBtns = qWrap.querySelectorAll('.rc-ps');
+      for(var qi = 0; qi < qBtns.length; qi++){
+        qBtns[qi].addEventListener('click', function(){ recSetQuality(this.getAttribute('data-quality')); });
+      }
+    }
+    var fWrap = $('recFps');
+    if(fWrap){
+      var fBtns = fWrap.querySelectorAll('.rc-ps');
+      for(var fi = 0; fi < fBtns.length; fi++){
+        fBtns[fi].addEventListener('click', function(){ recSetFps(this.getAttribute('data-fps')); });
+      }
+    }
+    /* ✨ 스포츠 화질 보정 복원 — 저장값이 없으면 ON */
+    try { REC.filterOn = (localStorage.getItem(REC_FILTER_KEY) !== '0'); } catch(e){ REC.filterOn = true; }
+    var fBox = $('recFilter');
+    if(fBox){
+      var fLbl = fBox.parentNode;
+      fBox.checked = !!REC.filterOn;
+      if(fLbl && fLbl.classList) fLbl.classList.toggle('on', !!REC.filterOn);
+      fBox.addEventListener('change', function(){ recSetFilter(this.checked); });
     }
     /* 🎞️ 비트레이트 복원 — 저장된 값이 없으면 표준 8Mbps(기본) */
     try {
       var sbps = parseInt(localStorage.getItem(REC_BPS_KEY), 10);
       REC.bps = REC_BPS[sbps] ? sbps : REC_DEFAULT_BPS;
+      if(sbps !== REC.bps){ try { localStorage.setItem(REC_BPS_KEY, String(REC.bps)); } catch(e){} }   /* v2-14.7: 옛 14Mbps → 8Mbps */
     } catch(e){ REC.bps = REC_DEFAULT_BPS; }
     recPaintBitrate();
     var bWrap = $('recBitrate');
@@ -6702,8 +6869,18 @@ apply(DATA);
     setInterval(recPaint, 700);
   }
   window.__recStart = recStart;
-  window.__recSetPreset = recSetPreset;        // 화질 전환 (테스트·자동화용)
-  window.__recPreset = function(){ return REC.preset; };
+  window.__recSetQuality = recSetQuality;      // 화질 전환 (테스트·자동화용)
+  window.__recQuality = function(){ return REC.quality; };
+  window.__recQualities = REC_QUALITIES;
+  window.__recSetFps = recSetFps;              // FPS 전환 (테스트·자동화용)
+  window.__recFpsVal = function(){ return REC.fps; };
+  window.__recFpsOpts = REC_FPS_OPTS;
+  window.__recCombo = function(){ return recP().label; };
+  window.__recSetFilter = recSetFilter;         // ✨ 스포츠 화질 보정 ON/OFF (테스트·자동화용)
+  window.__recFilter = function(){ return REC.filterOn; };
+  window.__recFilterCss = REC_FILTER_CSS;
+  window.__recSetPreset = recSetPreset;        // (호환) 옛 화질 프리셋 이름 → 화질+FPS
+  window.__recPreset = function(){ return recP().id; };
   window.__recPresets = REC_PRESETS;
   window.__recSetBitrate = recSetBitrate;      // 비트레이트 전환 (테스트·자동화용)
   window.__recBps = function(){ return REC.bps; };
