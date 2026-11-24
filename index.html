@@ -4834,13 +4834,15 @@ apply(DATA);
      · ● 녹화 시작 / ⏸ 일시정지(▶ 재개) / ■ 정지(저장) + REC 경과 시간
      · 🎤 마이크 ON/OFF · 📡 방 코드(B폰 MQTT 실시간 점수) · WakeLock(녹화 중 화면 꺼짐 방지)
      · 파일명: 2파전 [YYMMDD][{N}G][{Q}] 홈 VS 어웨이 / 3파전 [YYMMDD][{Q}] 홈 VS 어웨이
+     · 촬영 중 쿼터·경기·팀이 바뀌어도 자동 분할/재시작 없이 1개 파일로 계속 (파일명은 시작 시점 기준)
      ===================================================================== */
   var recMode = !isDisplay && /([?&])mode=record(&|$)/.test(location.search);
   var REC = {
     on:false, paused:false, rec:null, chunks:[], cam:null, mic:null, stream:null,
     scale:1, mime:'', ext:'.webm', startedAt:0, elapsed:0, timer:null, wake:null,
     base:'', micOn:true, ready:false, downloadName:'', video:{w:0,h:0},
-    autoSave:false, lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0
+    autoSave:false, autoSplit:false,   // autoSplit: 쿼터/경기/팀 변경 시 자동 분할·재시작 — 기본 꺼짐(한 파일로 계속 녹화)
+    lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0
   };
   var recCanvas = null, recCtx = null, recVideoEl = null, recRaf = 0;
   var REC_Q = ['1Q', '2Q', '3Q', '4Q', 'OT'];
@@ -5101,8 +5103,10 @@ apply(DATA);
       }
     }
     drawRecBar(ctx, W, H, REC.scale);
-    /* 쿼터·경기·팀이 바뀌면 그 파일명으로 저장하고 새 파일로 이어서 녹화 */
-    if(REC.on && !REC.paused && REC.base && recFileBase() !== REC.base) recSplit();
+    /* v2-14(수정): 촬영 중 쿼터·경기·팀·원격 상태가 바뀌어도 자동 분할·재시작하지 않는다.
+       녹화는 시작할 때의 파일명(REC.base) 하나로 ■ 정지(저장) 때까지 계속 이어진다.
+       (자동 분할이 필요하면 REC.autoSplit = true 로 켤 수 있다 — 기본값 false) */
+    if(REC.autoSplit && REC.on && !REC.paused && REC.base && recFileBase() !== REC.base) recSplit();
     recRaf = requestAnimationFrame(recFrame);
   }
 
@@ -5143,9 +5147,11 @@ apply(DATA);
     if(info){
       var codec = REC.mime ? REC.mime.replace('video/', '') : '녹화 대기';
       var portrait = REC.video.w && REC.video.h && REC.video.h > REC.video.w;
+      /* 녹화 중에는 실제로 저장될 이름(시작 시점 REC.base)을 그대로 보여준다 — 쿼터가 바뀌어도 이름이 흔들리지 않는다 */
+      var nowName = (REC.on && REC.base) ? (REC.base + REC.ext) : recFileName();
       info.textContent = (REC.ready ? ('후면 카메라 ' + (REC.video.w || 1920) + '×' + (REC.video.h || 1080) + ' · 30fps · ' + codec) : '카메라 대기') +
         (portrait ? ' · 📱 가로로 돌려 촬영하세요' : '') +
-        (REC.mic ? ' · 🎤 마이크' : ' · 🔇 무음') + ' · 파일명 ' + recFileName();
+        (REC.mic ? ' · 🎤 마이크' : ' · 🔇 무음') + ' · 파일명 ' + nowName;
     }
     var sync = $('recSync');
     if(sync){
@@ -5322,8 +5328,9 @@ apply(DATA);
       if(REC.autoStopT){ clearTimeout(REC.autoStopT); REC.autoStopT = null; }
     }
   }
+  /* 자동 분할(이어서 새 파일) — 기본은 꺼져 있다. REC.autoSplit = true 일 때만 recFrame 이 호출한다. */
   function recSplit(){
-    if(!REC.on || REC.changing || !REC.rec) return;
+    if(!REC.autoSplit || !REC.on || REC.changing || !REC.rec) return;
     REC.changing = true;
     recToast('쿼터/경기가 바뀌어 이전 파일을 저장하고 새 파일로 이어서 녹화합니다', 4000);
     if(!REC.paused && REC.startedAt) REC.elapsed = performance.now() - REC.startedAt;
