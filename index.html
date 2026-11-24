@@ -1346,6 +1346,10 @@
     #recInfo{top:60px;font-size:10.5px;max-width:70vw}
     #recBadge{left:10px;top:10px;height:34px;font-size:12px;padding:0 11px}
   }
+  /* v2-14.1 🎬 HEVC 우선 토글 · ⛶ 전체화면 버튼 */
+  #recCtl #recHevc + span, #recCtl label.rc-tog{white-space:nowrap}
+  #recFs{height:34px!important;font-size:11.5px!important;background:#101a25!important;border-color:#2b3b53!important;color:#9fb0c6!important}
+  #recFs.on{background:rgba(59,130,246,.18)!important;border-color:rgba(59,130,246,.55)!important;color:#bfdbfe!important}
   /* ===================================================================
      ?mode=display (출력용 전광판) — 화면 끝까지 꽉 채우기
      · 전체화면이면 브라우저 UI 가 사라지고, 보드는 1600×900 무대를 화면에
@@ -1496,6 +1500,7 @@ apply(DATA);
   · v2-14: 휴식 45초 + 픽사베이 NBA 비트(45초 편집) · 쿼터 종료/휴식끝 한국어 안내(톤 연동)
   · v2-14: 블랙 팀 실버 테두리 · 설정 보정 항목 삭제 + 휘슬 통일 · 3파전 순서 변경 · 📺 출력 라벨
   · v2-14: ?mode=record — 후면 카메라 1080p 30fps + 하단 스코어바 합성 + MediaRecorder 저장
+  · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
   · v2-13: 경기결과는 모바일/좁은 화면에서 같은 화면의 풀스크린 오버레이로 열려 점수·리셋이 즉시 반영(새 창은 직접호출+postMessage+400ms 폴링)
   · 장내아나운서 톤 선택(게임 아케이드 톤 · 기본 / 발랄 치어리더 톤) — 설정 ⚙
@@ -1924,8 +1929,10 @@ apply(DATA);
     <button id="recPause" type="button" disabled>⏸ 일시정지</button>
     <button id="recStop" type="button" disabled>■ 정지(저장)</button>
     <div class="rc-row"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
+    <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
     <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
     <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
+    <button id="recFs" type="button">⛶ 전체화면</button>
     <div class="rc-row room"><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
     <div id="recSync"><i></i>📡 —</div>
     <a id="recBack" href="?">✕ 컨트롤 화면으로</a>
@@ -3040,12 +3047,16 @@ apply(DATA);
   }
   /* 경기 시계 마지막 10초가 살아 있으면 샷클락 카운트는 쉰다(소리 겹침 방지) */
   function gameCountdownActive(){
-    return running && S.clock > 0 && S.clock <= 10000;
+    return running && S.clock > 0 && S.clock <= 10250;      // 250ms 선행 보정폭까지 포함
   }
   /* 경기 시계: 10초 → 1초, 화면 숫자가 바뀌는 순간 그 숫자 클립을 한 번만 */
   function checkGameCountdown(){
     if(!running){ gameCountMark = 0; return; }
-    var sec = clockSecs(S.clock);
+    if(S.clock <= 0){ gameCountMark = 0; return; }          // 0 이하에서는 발화하지 않는다
+    /* v2-14.1: 250ms 선행 오프셋 — 화면 숫자가 바뀌기 약 0.25초 전에 소리를 시작해 '한 박자 늦음'을 보정
+       · 남은 시간에서 250ms 를 빼고 올림하면, 각 숫자의 발화 구간이 (N*1000, N*1000+250] 이 된다
+         → '텐!' 은 S.clock 이 10250 이하일 때(10000 초과 구간 포함) 정확히 울리고, 9·8… 도 같은 폭으로 앞선다 */
+    var sec = clockSecs(S.clock - 250);
     if(sec > 10 || sec < 1){ gameCountMark = 0; return; }
     if(gameCountMark === sec) return;
     gameCountMark = sec;
@@ -3057,7 +3068,9 @@ apply(DATA);
   /* 샷클락: 5초 → 1초, 매 초 한 번만 */
   function checkCountdown(){
     if(gameCountdownActive()) return;      // 경기시간 마지막 10초가 우선
-    var sec = shotSecs(S.shot);
+    if(S.shot <= 0){ countMark = 0; return; }               // 0 이하에서는 발화하지 않는다
+    /* v2-14.1: 샷클락도 250ms 선행으로 화면 숫자와 귀에 들리는 시점을 맞춘다 */
+    var sec = shotSecs(S.shot - 250);
     if(sec > 5){ countMark = 0; return; }
     if(sec >= 1 && sec <= 5 && countMark !== sec){
       countMark = sec;
@@ -4833,6 +4846,8 @@ apply(DATA);
      · 스코어바 크기 70%~130% 슬라이더(실시간)
      · ● 녹화 시작 / ⏸ 일시정지(▶ 재개) / ■ 정지(저장) + REC 경과 시간
      · 🎤 마이크 ON/OFF · 📡 방 코드(B폰 MQTT 실시간 점수) · WakeLock(녹화 중 화면 꺼짐 방지)
+     · v2-14.1: 🎬 HEVC(H.265) 우선 녹화 — 기기 미지원/생성 실패 시 H.264·MP4 → WebM 자동 폴백
+     · v2-14.1: ⛶ ?mode=record 도 열자마자 전체화면 시도(차단 시 첫 터치) + 전체화면 토글 버튼
      · 파일명: 2파전 [YYMMDD][{N}G][{Q}] 홈 VS 어웨이 / 3파전 [YYMMDD][{Q}] 홈 VS 어웨이
      · 촬영 중 쿼터·경기·팀이 바뀌어도 자동 분할/재시작 없이 1개 파일로 계속 (파일명은 시작 시점 기준)
      ===================================================================== */
@@ -4842,8 +4857,10 @@ apply(DATA);
     scale:1, mime:'', ext:'.webm', startedAt:0, elapsed:0, timer:null, wake:null,
     base:'', micOn:true, ready:false, downloadName:'', video:{w:0,h:0},
     autoSave:false, autoSplit:false,   // autoSplit: 쿼터/경기/팀 변경 시 자동 분할·재시작 — 기본 꺼짐(한 파일로 계속 녹화)
-    lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0
+    lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0,
+    hevc:true, fellBack:false          // hevc: 🎬 HEVC(H.265) 우선으로 저장할지(기본 ON, 기기 미지원 시 자동 폴백)
   };
+  var REC_HEVC_KEY = 'bball_sb2_rec_hevc';
   var recCanvas = null, recCtx = null, recVideoEl = null, recRaf = 0;
   var REC_Q = ['1Q', '2Q', '3Q', '4Q', 'OT'];
   var REC_FONT = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,-apple-system,sans-serif';
@@ -5145,7 +5162,7 @@ apply(DATA);
     }
     var info = $('recInfo');
     if(info){
-      var codec = REC.mime ? REC.mime.replace('video/', '') : '녹화 대기';
+      var codec = REC.mime ? REC.mime.replace('video/', '') : (REC.hevc !== false ? 'HEVC 우선 · 녹화 대기' : 'H.264 · 녹화 대기');
       var portrait = REC.video.w && REC.video.h && REC.video.h > REC.video.w;
       /* 녹화 중에는 실제로 저장될 이름(시작 시점 REC.base)을 그대로 보여준다 — 쿼터가 바뀌어도 이름이 흔들리지 않는다 */
       var nowName = (REC.on && REC.base) ? (REC.base + REC.ext) : recFileName();
@@ -5167,17 +5184,48 @@ apply(DATA);
   }
 
   /* ---------------- 녹화 제어 ---------------- */
+  /* v2-14.1 🎬 HEVC(H.265) 우선 — 기기가 HEVC 녹화를 지원하지 않으면 H.264/MP4 → WebM 순으로 자동 폴백 */
+  var REC_HEVC_CANDS = [
+    'video/mp4;codecs="hvc1.1.6.L93.B0,mp4a.40.2"',
+    'video/mp4;codecs="hev1.1.6.L93.B0,mp4a.40.2"',
+    'video/mp4;codecs="hvc1"',
+    'video/mp4;codecs="hev1"'
+  ];
+  var REC_SAFE_CANDS = [
+    'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+    'video/mp4',
+    'video/webm;codecs=vp9,opus',
+    'video/webm'
+  ];
   function recPickMime(){
-    var cands = [
-      'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
-      'video/mp4',
-      'video/webm;codecs=vp9,opus',
-      'video/webm'
-    ];
+    var cands = (REC.hevc !== false) ? REC_HEVC_CANDS.concat(REC_SAFE_CANDS) : REC_SAFE_CANDS.slice(0);
     for(var i = 0; i < cands.length; i++){
       try { if(window.MediaRecorder && MediaRecorder.isTypeSupported(cands[i])) return cands[i]; } catch(e){}
     }
     return '';
+  }
+  /* isTypeSupported 가 true 여도 new MediaRecorder 가 throw 하는 기기가 있다
+     → 그 순간 H.264/MP4 → 기본 MP4 → WebM → 코덱 지정 없음 순으로 즉시 재시도 */
+  function recNewRecorder(stream, base){
+    var want = recPickMime() || REC.mime || '';
+    var list = [];
+    if(want) list.push(want);
+    for(var i = 0; i < REC_SAFE_CANDS.length; i++) if(list.indexOf(REC_SAFE_CANDS[i]) < 0) list.push(REC_SAFE_CANDS[i]);
+    if(list.indexOf('') < 0) list.push('');
+    var lastErr = null;
+    for(var j = 0; j < list.length; j++){
+      var mt = list[j];
+      try {
+        if(mt && window.MediaRecorder && MediaRecorder.isTypeSupported && !MediaRecorder.isTypeSupported(mt)) continue;
+        var opts = { videoBitsPerSecond: base.videoBitsPerSecond, audioBitsPerSecond: base.audioBitsPerSecond };
+        if(mt) opts.mimeType = mt;
+        var rec = new MediaRecorder(stream, opts);
+        REC.mime = mt;                                  // 실제로 만들어진 형식으로 확정
+        REC.fellBack = !!(want && mt !== want);
+        return rec;
+      } catch(e){ lastErr = e; }
+    }
+    throw (lastErr || new Error('MediaRecorder 를 만들 수 없습니다'));
   }
   async function recStart(){
     if(REC.on){ if(REC.paused) recResume(); return; }
@@ -5233,11 +5281,11 @@ apply(DATA);
         REC.mic.getAudioTracks().forEach(function(t){ try { t.enabled = true; stream.addTrack(t); } catch(e){} });
       }
       REC.stream = stream;
+      REC.fellBack = false;
       REC.mime = recPickMime();
-      REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
       var opts = { videoBitsPerSecond: 8500000, audioBitsPerSecond: 128000 };
-      if(REC.mime) opts.mimeType = REC.mime;
-      REC.rec = new MediaRecorder(stream, opts);
+      REC.rec = recNewRecorder(stream, opts);            // HEVC 생성 실패 시 H.264/MP4 로 즉시 재시도
+      REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
       REC.chunks = [];
       REC.base = recFileBase();
       REC.rec.ondataavailable = function(ev){ if(ev.data && ev.data.size) REC.chunks.push(ev.data); };
@@ -5249,7 +5297,7 @@ apply(DATA);
       REC.lastBreak = (S.mode === 'break');   // 이미 휴식 중에 시작했다면 자동 저장을 걸지 않는다
       recWake();
       recPaint();
-      recToast('녹화 시작 · ' + recFileName());
+      recToast('녹화 시작 · ' + recFileName() + (REC.fellBack ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 2200);
     } catch(e){
       recErr('이 브라우저는 캔버스 녹화(MediaRecorder)를 지원하지 않습니다.<br>' + (e && e.message ? e.message : ''), '녹화를 시작할 수 없습니다');
     }
@@ -5698,6 +5746,53 @@ apply(DATA);
     try { location.href = url; return; } catch(e){}
     try { window.open(url, '_blank'); } catch(e){ recToast('녹화 모드를 열지 못했습니다. 주소 뒤에 ?mode=record 를 붙여 열어 주세요.'); }
   }
+  /* ---------------- 전체화면 (녹화 모드) ---------------- */
+  function recFsExit(){
+    var d = document;
+    var fn = d.exitFullscreen || d.webkitExitFullscreen || d.mozCancelFullScreen || d.msExitFullscreen;
+    if(!fn) return false;
+    try { var p = fn.call(d); if(p && p.catch) p.catch(function(){}); } catch(e){}
+    return true;
+  }
+  function recFsLabel(){
+    var b = $('recFs');
+    if(!b) return;
+    var on = (typeof fsOn === 'function') ? fsOn() : false;
+    b.textContent = on ? '✕ 전체화면 해제' : '⛶ 전체화면';
+    b.classList.toggle('on', on);
+  }
+  /* ?mode=record — 켜지자마자 전체화면 시도, 브라우저가 막으면 첫 터치/클릭(● 녹화 시작 포함)에서 진입 */
+  function initRecordFullscreen(){
+    var tryAuto = function(){ try { fsEnter(); } catch(e){} recFsLabel(); };
+    setTimeout(tryAuto, 120);
+    setTimeout(tryAuto, 900);
+    var off = function(){
+      document.removeEventListener('pointerdown', once, true);
+      document.removeEventListener('touchstart', once, true);
+      document.removeEventListener('click', once, true);
+      document.removeEventListener('keydown', once, true);
+    };
+    var once = function(){
+      off();
+      if((typeof fsOn === 'function') && fsOn()) return;
+      try { fsEnter(); } catch(e){}
+      setTimeout(recFsLabel, 400);
+    };
+    document.addEventListener('pointerdown', once, true);
+    document.addEventListener('touchstart', once, true);
+    document.addEventListener('click', once, true);
+    document.addEventListener('keydown', once, true);
+    var btn = $('recFs');
+    if(btn) btn.addEventListener('click', function(e){
+      e.preventDefault();
+      if((typeof fsOn === 'function') && fsOn()) recFsExit(); else { try { fsEnter(); } catch(err){} }
+      setTimeout(recFsLabel, 450);
+    });
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(function(ev){
+      document.addEventListener(ev, function(){ setTimeout(recFsLabel, 60); });
+    });
+    recFsLabel();
+  }
   function initRecorder(){
     recCanvas = $('recCanvas');
     recVideoEl = $('recVideo');
@@ -5705,6 +5800,30 @@ apply(DATA);
     recCtx = recCanvas.getContext('2d');
     document.body.classList.add('record-mode');
     $('recWrap').hidden = false;
+    /* 🎬 HEVC 우선 설정 복원 (localStorage) */
+    try { REC.hevc = (localStorage.getItem(REC_HEVC_KEY) !== '0'); } catch(e){ REC.hevc = true; }
+    var hevcBox = $('recHevc');
+    if(hevcBox){
+      var hevcLbl = hevcBox.parentNode;
+      hevcBox.checked = (REC.hevc !== false);
+      if(hevcLbl && hevcLbl.classList) hevcLbl.classList.toggle('on', REC.hevc !== false);
+      hevcBox.addEventListener('change', function(){
+        REC.hevc = !!this.checked;
+        try { localStorage.setItem(REC_HEVC_KEY, REC.hevc ? '1' : '0'); } catch(e){}
+        if(hevcLbl && hevcLbl.classList) hevcLbl.classList.toggle('on', REC.hevc);
+        if(REC.on){ recToast('녹화 중에는 코덱이 바뀌지 않습니다 · 다음 녹화부터 적용', 3000); }
+        else {
+          REC.mime = recPickMime();
+          REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
+          recToast(REC.hevc ? ('HEVC(H.265) 우선 · ' + (/hvc1|hev1/i.test(REC.mime) ? '지원됨' : '미지원 → 자동 폴백')) : 'H.264 우선으로 녹화합니다', 3000);
+        }
+        recPaint();
+      });
+    }
+    if(!REC.on){
+      REC.mime = recPickMime();                     /* 대기 중에도 실제로 저장될 코덱·확장자를 보여준다 */
+      REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
+    }
     /* 버튼 */
     var startBtn = $('recBtn');
     if(startBtn) startBtn.addEventListener('click', function(){ recStart(); });
@@ -5791,6 +5910,7 @@ apply(DATA);
     });
     recPaint();
     recTicker();
+    initRecordFullscreen();      // ?mode=record 도 열리자마자 전체화면 시도(막히면 첫 터치)
     loadClips();                 // 쿼터 종료 안내 클립 길이를 알아야 자동 저장 시점이 정확해진다
     REC.watchT = setInterval(recWatchBreak, 250);
     recRaf = requestAnimationFrame(recFrame);
@@ -6277,15 +6397,13 @@ apply(DATA);
   function rmInit(){
     RM.cid = 'sb2' + Math.random().toString(36).slice(2, 10);
     RM.buf = new Uint8Array(0);
-    var recHadRoom = false;
     try {
       var m = /[?&]broker=([^&]+)/.exec(location.search);
       if(m) RM_BROKERS = [decodeURIComponent(m[1]).replace(/^ws(s)?:\/\//, 'wss://')];
     } catch(e){}
     try {
       var r0 = rmSanitize(localStorage.getItem(RM_KEYS.room));
-      recHadRoom = !!r0;
-      RM.room = r0 || rmRandomCode();
+      RM.room = r0 || rmRandomCode();          /* 마지막에 쓰던 방 코드를 그대로 기억 — 저장된 게 없을 때만 새로 만든다 */
       var ro = localStorage.getItem(RM_KEYS.role);
       if(ro === 'recv' || ro === 'send') RM.role = ro;
       var pp = localStorage.getItem(RM_KEYS.pos);
@@ -6293,10 +6411,11 @@ apply(DATA);
     } catch(e){ if(!RM.room) RM.room = rmRandomCode(); }
     try {
       var mr = /[?&]room=([^&]+)/.exec(location.search);
-      if(mr){ var rr = rmSanitize(decodeURIComponent(mr[1])); if(rr){ RM.room = rr; recHadRoom = true; } }
+      if(mr){ var rr = rmSanitize(decodeURIComponent(mr[1])); if(rr) RM.room = rr; }   /* ?room= 이 있으면 그 코드가 우선 */
       var mp = /[?&]pos=(top|bottom)/.exec(location.search);
       if(mp) obsPos = mp[1];
     } catch(e){}
+    rmStore();                                  /* 열 때 확정된 방 코드를 남겨 다음에도 그대로 쓴다 */
     document.body.classList.toggle('obs-overlay', obsMode);
     document.documentElement.classList.toggle('obs-html', obsMode);
     setObsPos(obsPos);
@@ -6310,9 +6429,19 @@ apply(DATA);
       RM.role = 'recv';
       rmSetOn(true);          // 오버레이는 열리자마자 자동으로 수신 시작
       rmChip(true);
-    } else if(recMode && recHadRoom){
-      /* 🎥 녹화 모드: 방 코드를 지정했거나 쓰던 방이 있을 때만 자동 수신 (쓸데없는 접속 시도 없음) */
+    } else if(isDisplay){
+      /* 📺 출력 창(?mode=display): 열리자마자 마지막 방 코드로 자동 수신
+         · 단독 바로가기(window.opener 없음)로 열어도 방 코드로 상태를 받는다
+         · 컨트롤 창에서 연 경우엔 기존 로컬 postMessage 동기화와 함께 동작한다 */
       RM.role = 'recv';
+      rmSetOn(true);
+    } else if(recMode){
+      /* 🎥 녹화 모드: 마지막 방 코드(또는 ?room=)로 열리자마자 자동 수신 */
+      RM.role = 'recv';
+      rmSetOn(true);
+    } else {
+      /* 컨트롤 화면: 열리자마자 송신(send)으로 자동 연결 — 📡 모달에서 직접 끌 수 있다 */
+      RM.role = 'send';
       rmSetOn(true);
     }
   }
