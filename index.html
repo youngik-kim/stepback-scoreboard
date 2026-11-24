@@ -561,18 +561,17 @@
   .matchbar .mbreset{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#8b98ac;padding:0 2px 0 0}
   .matchbar .mbreset input{width:14px;height:14px;flex:0 0 auto;accent-color:#4b7fc4}
   body.mode-remote .matchbar .mb{height:29px;font-size:10.5px}
-  /* v2-14.2: 조작 패널 순서 — 2파전은 경기선택이 점수 버튼 위(기존 그대로),
-     3파전(body.fmt3)이면 경기선택 줄을 +1/+2/+3 · 점수 -1 · 팀파울 아래로 내린다 */
+  /* v2-14.3: 조작 패널 순서 — 2파전·3파전 모두 경기선택 줄을
+     +1/+2/+3 · 점수 -1 · 팀파울(팀 패널) 아래, 좌우 변경(swapbtn) 위에 둔다 */
   #panel > .phead{order:10}
   #panel > .prow{order:20}
   #panel > .shotadj{order:30}
   #panel > .clockadj{order:40}
-  #panel > .matchbar{order:50}
   #panel > .teams{order:60}
+  #panel > .matchbar{order:65}
   #panel > .swapbtn{order:70}
   #panel > .btnpair{order:80}
   #panel > .fxpad{order:90}
-  body.fmt3 #panel > .matchbar{order:65}
 
   /* 사운드 패드 — 장내아나운서(5) 위 / 경기장 SFX(7) 아래 두 섹션 */
   .fxpad{
@@ -1422,6 +1421,112 @@
     #recCtl .rc-ps{height:34px;font-size:11.5px}
   }
   /* ===================================================================
+     v2-14.3 🎥 레코더 UI — 녹화 전엔 화면 가득 프리뷰 + 얇은 하단 바,
+     녹화 중엔 반투명 최소 버튼(● REC · ⏸ 일시정지 · ■ 정지)만 남긴다
+     =================================================================== */
+  #recWrap{display:block;align-items:stretch;justify-content:flex-start}
+  #recCanvas{width:100%;height:100%;object-fit:contain;display:block}
+  /* ① 녹화 전 — 하단 반투명 플로팅 바 (스코어바 위로 띄운다) */
+  #recBar{
+    position:fixed;left:50%;z-index:7;transform:translateX(-50%);
+    bottom:calc(var(--rec-bar-bottom,14px) + env(safe-area-inset-bottom,0px));
+    display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:18px;
+    background:rgba(8,12,18,.58);border:1px solid rgba(130,150,180,.30);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    box-shadow:0 12px 34px rgba(0,0,0,.5);
+    max-width:calc(100vw - 16px);
+  }
+  #recBar button{
+    height:46px;border-radius:14px;border:1px solid #2b3b53;background:rgba(22,33,46,.86);
+    color:#dbe7f6;font-size:13.5px;font-weight:900;letter-spacing:-.01em;padding:0 15px;white-space:nowrap;
+  }
+  #recBar button:active{transform:translateY(1px)}
+  #recBar #recBtn{
+    background:linear-gradient(180deg,#e2382c,#a81d14)!important;border-color:#ff8b80!important;
+    color:#fff!important;font-size:15.5px;padding:0 22px;
+    box-shadow:0 4px 0 #6d130d, 0 8px 20px rgba(226,56,44,.32);
+  }
+  #recBar #recBtn:disabled{opacity:.55;box-shadow:none}
+  #recBar #recSync{display:inline-flex;align-items:center;gap:7px;max-width:40vw;padding:0 12px;
+    background:rgba(10,16,24,.62);border-color:rgba(130,150,180,.26);color:#9fb0c6;font-size:12px;font-weight:800}
+  #recBar #recSync i{width:8px;height:8px;border-radius:50%;background:#46536a;flex:0 0 auto}
+  #recBar #recSync i.on{background:var(--green);box-shadow:0 0 8px rgba(16,232,117,.9)}
+  #recBar #recSync i.wait{background:var(--amber);box-shadow:0 0 8px rgba(245,197,66,.85)}
+  #recBar #recSyncTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #recBar #recExit{width:46px;padding:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(10,16,24,.55);border-color:rgba(130,150,180,.24);color:#9fb0c6;font-size:14px}
+  /* ② 녹화 중 — 우하단 최소 버튼만 */
+  #recMin{
+    position:fixed;right:10px;z-index:8;display:none;align-items:center;gap:6px;
+    bottom:calc(var(--rec-bar-bottom,12px) + env(safe-area-inset-bottom,0px));
+  }
+  body.rec-live #recMin{display:flex}
+  body.rec-live #recBar{display:none !important}
+  body.rec-live #recCfg{display:none !important}
+  body.rec-live #recRotate{display:none !important}
+  #recMin #recBadge{
+    position:static;left:auto;top:auto;height:32px;padding:0 11px;gap:7px;
+    font-size:12px;opacity:.94;background:rgba(8,12,18,.56);border-color:rgba(150,170,200,.28);
+  }
+  #recMin #recBadge .rdot{width:8px;height:8px}
+  #recMin button{
+    height:32px;padding:0 10px;border-radius:9px;border:1px solid rgba(150,170,200,.30)!important;
+    background:rgba(8,12,18,.56)!important;color:#e6eefb;font-size:11.5px;font-weight:900;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:.94;
+  }
+  #recMin button:disabled{opacity:.4}
+  #recMin #recStop{background:rgba(8,12,18,.56)!important;border-color:rgba(255,120,110,.5)!important;color:#ffd2d2!important}
+  #recMin #recPause.paused{background:rgba(30,24,8,.72)!important;border-color:rgba(245,197,66,.65)!important;color:#ffe27a!important}
+  /* ③ ⚙️ 레코더 설정 서랍 */
+  #recCfg{
+    position:fixed;right:10px;top:10px;bottom:10px;z-index:9;
+    width:min(330px,calc(100vw - 20px));
+    display:flex;flex-direction:column;gap:9px;padding:12px 12px 10px;border-radius:18px;
+    background:rgba(8,12,18,.94);border:1px solid rgba(130,150,180,.32);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    box-shadow:0 22px 50px rgba(0,0,0,.62);overflow-y:auto;
+  }
+  #recCfg[hidden]{display:none !important}
+  .rcfg-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px 1px}
+  .rcfg-head b{font-size:13.5px;font-weight:900;letter-spacing:.02em;color:#eaf2fd}
+  #recCfgClose{
+    width:32px;height:32px;border-radius:9px;border:1px solid #2b3b53;background:#101a25;
+    color:#9fb0c6;font-size:13px;font-weight:900;padding:0;
+  }
+  /* 서랍 안에서는 예전 우측 패널 위치·배경을 쓰지 않는다 */
+  #recCfg #recCtl{
+    position:static;right:auto;top:auto;bottom:auto;left:auto;transform:none;
+    width:auto;max-height:none;overflow:visible;padding:0;border:0;border-radius:0;
+    background:none;box-shadow:none;display:flex;flex-direction:column;gap:8px;
+  }
+  #recCfg #recCtl button{width:100%}
+  #recCfg #recCtl .rc-mini{width:auto}
+  #recCfg #recInfo{
+    position:static;left:auto;top:auto;max-width:none;font-size:11px;line-height:1.55;
+    color:#8b9ab0;padding:2px 1px 0;text-shadow:none;
+  }
+  /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
+  #recRotate{
+    position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:7;
+    padding:8px 14px;border-radius:999px;max-width:calc(100vw - 16px);white-space:nowrap;
+    background:rgba(10,16,24,.74);border:1px solid rgba(245,197,66,.55);color:#ffe27a;
+    font-size:12.5px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.45);
+  }
+  #recRotate[hidden]{display:none !important}
+  @media (max-width:560px){
+    #recBar{gap:6px;padding:7px 8px}
+    #recBar #recBtn{height:44px;padding:0 15px;font-size:14.5px}
+    #recBar button{height:44px;padding:0 10px;font-size:12.5px}
+    #recBar #recSyncTxt{display:none}
+    #recBar #recExit{width:40px}
+  }
+  @media (max-height:420px) and (orientation:landscape){
+    #recBar{gap:6px;padding:6px 8px}
+    #recBar button{height:40px;font-size:12.5px}
+    #recBar #recBtn{height:40px;padding:0 16px;font-size:14px}
+  }
+
+  /* ===================================================================
      ?mode=display (출력용 전광판) — 화면 끝까지 꽉 채우기
      · 전체화면이면 브라우저 UI 가 사라지고, 보드는 1600×900 무대를 화면에
        꽉 차게 스케일한다(16:9 화면은 100% 일치, 다른 비율은 잘림 없이 여백).
@@ -1996,29 +2101,48 @@ apply(DATA);
 
 
 <!-- ================= 🎥 녹화 모드 (?mode=record) ================= -->
-<div id="recWrap" hidden aria-label="녹화 모드">
+<div id="recWrap" hidden aria-label="녹화 모드"><!-- v2-14.3 rec ui -->
   <canvas id="recCanvas" width="1920" height="1080"></canvas>
   <video id="recVideo" playsinline muted style="display:none"></video>
-  <div id="recBadge"><i class="rdot"></i>대기 · 00:00</div>
-  <div id="recInfo"></div>
-  <div id="recCtl">
+
+  <!-- 📱 세로일 때만: 가로 회전 권장 배지 -->
+  <div id="recRotate" hidden>📱 가로로 돌리면 16:9 촬영 화면이 꽉 차게 보여요</div>
+
+  <!-- ① 녹화 전 — 하단 얇은 플로팅 바 (핵심 조작만) -->
+  <div id="recBar">
     <button id="recBtn" type="button">● 녹화 시작</button>
-    <button id="recPause" type="button" disabled>⏸ 일시정지</button>
-    <button id="recStop" type="button" disabled>■ 정지(저장)</button>
-    <div class="rc-row rc-preset" id="recPreset" role="group" aria-label="화질 설정">
-      <span>화질</span>
-      <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
-      <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
-    </div>
-    <div class="rc-row"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
-    <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
-    <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
-    <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
-    <button id="recFs" type="button">⛶ 전체화면</button>
-    <div class="rc-row room"><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
-    <div id="recSync"><i></i>📡 —</div>
-    <a id="recBack" href="?">✕ 컨트롤 화면으로</a>
+    <button id="recCfgBtn" type="button" aria-expanded="false" aria-controls="recCfg">⚙️ 레코더 설정</button>
+    <button id="recSync" type="button" aria-label="방 코드 · 연결 상태"><i></i><span id="recSyncTxt">📡 —</span></button>
+    <button id="recExit" type="button" aria-label="컨트롤 화면으로">✕</button>
   </div>
+
+  <!-- ② 녹화 중 — 반투명 최소 버튼 (REC · 일시정지 · 정지) -->
+  <div id="recMin">
+    <div id="recBadge"><i class="rdot"></i>REC 00:00</div>
+    <button id="recPause" type="button" disabled>⏸ 일시정지</button>
+    <button id="recStop" type="button" disabled>■ 정지</button>
+  </div>
+
+  <!-- ③ ⚙️ 레코더 설정 서랍 — 세부 옵션은 여기에 접어 둔다 -->
+  <div id="recCfg" hidden role="dialog" aria-label="레코더 설정">
+    <div class="rcfg-head"><b>⚙️ 레코더 설정</b><button id="recCfgClose" type="button" aria-label="설정 닫기">✕</button></div>
+    <div id="recCtl">
+      <div class="rc-row rc-preset" id="recPreset" role="group" aria-label="화질 설정">
+        <span>화질</span>
+        <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
+        <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
+      </div>
+      <div class="rc-row"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
+      <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
+      <label class="rc-tog"><input id="recAuto" type="checkbox"> 쿼터 종료 자동 저장</label>
+      <button id="recMic" type="button" class="on">🎤 마이크 ON</button>
+      <button id="recFs" type="button">⛶ 전체화면</button>
+      <div class="rc-row room"><input id="recRoom" maxlength="8" placeholder="방 코드" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="recRoomOk" type="button" class="rc-mini">연결</button></div>
+      <div id="recInfo"></div>
+      <a id="recBack" href="?">✕ 컨트롤 화면으로</a>
+    </div>
+  </div>
+
   <div id="recErr" hidden></div>
   <div id="recToast"></div>
   <div id="recConfirm" hidden>
@@ -3306,19 +3430,36 @@ apply(DATA);
     storeCurrentScore();                    // 지금 (경기 × 쿼터) 칸에 점수·팀파울을 계속 반영
     try { localStorage.setItem(PERSIST, JSON.stringify(snapshot())); } catch(e){}
   }
+  /* v2-14.3 패킷 — sentAt·seq·running·clock·shot·shotOn 을 함께 실어 수신측이 지연을 보정한다 */
+  function statePacket(){
+    return {
+      type:'state', state:snapshot(), t:Date.now(), sentAt:Date.now(), seq:(RM.seq += 1),
+      running: !!running, clock: Math.round(S.clock), shot: Math.round(S.shot), shotOn: !!S.shotOn,
+      src: RM.cid, v: 3
+    };
+  }
+  /* 시계·샷클락만 흐른 틱인지 / 점수·쿼터 같은 '조작'인지 구분 → 조작은 즉시, 시계는 300ms 간격 */
+  var pubSigLast = '';
+  function pubSig(){
+    return JSON.stringify([S.home, S.away, S.q, S.dur, S.shotOn, S.poss, S.sound, S.voice, S.rot, S.mirror,
+      S.layout, S.mode, running, S.format, S.matchIdx, S.matchReset, S.gameNo, S.annVoice, S.matches, S.books]);
+  }
   function publish(skipStore){
-    var payload = { type:'state', state:snapshot(), t: Date.now() };
+    var pkt = statePacket();
+    var sig = pubSig();
+    var immediate = (sig !== pubSigLast);
+    pubSigLast = sig;
     if(!isDisplay){
-      try { if(bc) bc.postMessage(payload); } catch(e){}
+      lcPost(pkt);                                   // 같은 기기 = 인터넷 없이 0ms 직결
       if(displayWin && !displayWin.closed){
-        try { displayWin.postMessage(payload, '*'); } catch(e){}
+        try { displayWin.postMessage(pkt, '*'); } catch(e){}
       }
     }
     if(!skipStore){
-      try { var raw = JSON.stringify(payload); localStorage.setItem(BUS, raw); lastBusRaw = raw; } catch(e){}
+      try { var raw = JSON.stringify(pkt); localStorage.setItem(BUS, raw); lastBusRaw = raw; } catch(e){}
     }
     /* 📡 다른 기기(오버레이)로도 같은 상태를 흘려보낸다 — 원격이 꺼져 있으면 즉시 반환 */
-    rmPublishState(false);
+    rmPublishState(immediate, pkt);
     /* 📊 경기결과 보기 창이 떠 있으면 실시간으로 최신 기록 반영 */
     if(!isDisplay) resPush(false);
   }
@@ -3329,7 +3470,7 @@ apply(DATA);
       if(!raw || raw === lastBusRaw) return;
       lastBusRaw = raw;
       var d = JSON.parse(raw);
-      if(d && d.state) applyRemote(d.state);
+      if(d && d.state) rmApplyState(d.state, { sentAt: d.sentAt, local: true });
     } catch(e){}
   }
   setInterval(pollBus, 400);
@@ -4897,23 +5038,54 @@ apply(DATA);
   if(window.ResizeObserver){ new ResizeObserver(fit).observe(viewport); }
 
   /* ================= 동기화 ================= */
+  /* v2-14.3 sync: 같은 기기(같은 브라우저) 0ms 직결 — 방 코드별 BroadcastChannel +
+     예전 전역 채널(출력 창 hello)도 같은 수신기로 모아 seq 로 중복을 걸러낸다 */
   try { bc = new BroadcastChannel('bball_scoreboard_v2'); } catch(e){ bc = null; }
-  if(bc){
-    bc.onmessage = function(ev){
-      var d = ev.data;
-      if(d && d.type === 'state') applyRemote(d.state);
-      else if(d && d.type === 'hello' && !isDisplay) publish();
-    };
+  if(bc) bc.onmessage = function(ev){ lcRecv(ev.data); };
+  var LC = { ch:null, name:'', bySrc:{}, lastAt:0 };
+  function lcName(){ return 'stepback_sb_' + (RM.room || 'STEP'); }
+  function lcClose(){
+    try { if(LC.ch) LC.ch.close(); } catch(e){}
+    LC.ch = null; LC.name = '';
+  }
+  function lcOpen(){
+    var nm = lcName();
+    if(LC.ch && LC.name === nm) return LC.ch;
+    lcClose();
+    if(typeof BroadcastChannel === 'undefined') return null;
+    try { LC.ch = new BroadcastChannel(nm); } catch(e){ LC.ch = null; return null; }
+    LC.name = nm;
+    LC.ch.onmessage = function(ev){ lcRecv(ev.data); };
+    return LC.ch;
+  }
+  function lcPost(pkt){
+    /* 상태는 방 코드별 채널로만 보낸다 (전역 채널은 hello 전용 → 방이 다른 창과 섞이지 않음) */
+    try { if(!LC.ch) lcOpen(); if(LC.ch) LC.ch.postMessage(pkt); } catch(e){}
+  }
+  function lcRecv(d){
+    if(!d || typeof d !== 'object') return;
+    if(d.type === 'hello'){ if(!isDisplay) publish(); return; }
+    if(d.type !== 'state' || !d.state) return;
+    if(RM.role === 'send') return;                                 // 컨트롤 자신의 상태가 기준
+    if(d.src && d.src === RM.cid) return;
+    if(typeof d.seq === 'number' && d.src){
+      var prev = LC.bySrc[d.src] || 0;
+      if(d.seq <= prev) return;                                    // 뒤늦게 도착한 옛 패킷
+      LC.bySrc[d.src] = d.seq;
+    }
+    LC.lastAt = performance.now();
+    LC.lastSentAt = +d.sentAt || Date.now();
+    rmApplyState(d.state, { sentAt: d.sentAt, local: true });
   }
   window.addEventListener('message', function(e){
     var d = e.data;
     if(!d || typeof d !== 'object') return;
     if(d.type === 'hello' && !isDisplay){
       if(e.source && d.role === 'display') displayWin = e.source;   // 다시 열린 출력 창도 잡아둔다
-      if(e.source){ try { e.source.postMessage({ type:'state', state:snapshot() }, '*'); } catch(err){} }
+      if(e.source){ try { e.source.postMessage(statePacket(), '*'); } catch(err){} }
       publish();
     } else if(d.type === 'state'){
-      applyRemote(d.state);
+      if(RM.role !== 'send') rmApplyState(d.state, { sentAt: d.sentAt, local: true });
     } else if(d.source === RES_SRC && d.kind === 'results-close'){
       var ov = document.getElementById('resultOverlay');
       if(ov) ov.hidden = true;                 // 결과 창의 ✕ 닫기 → 인앱 오버레이 닫기
@@ -4924,7 +5096,7 @@ apply(DATA);
       lastBusRaw = e.newValue;
       try {
         var d = JSON.parse(e.newValue);
-        if(d && d.state) applyRemote(d.state);
+        if(d && d.state) rmApplyState(d.state, { sentAt: d.sentAt, local: true });
       } catch(err){}
     }
   });
@@ -5258,7 +5430,7 @@ apply(DATA);
       ctx.fillStyle = gr; ctx.fillRect(0, 0, DW, DH);
       ctx.fillStyle = '#4a5b73'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = recFont(38, 800);
-      ctx.fillText(REC.ready ? '카메라 준비 중…' : '● 녹화 시작을 누르면 카메라 미리보기가 켜집니다', DW / 2, DH / 2 - 20);
+      ctx.fillText(REC.ready ? '카메라 준비 중…' : (REC.previewErr ? '카메라를 열 수 없습니다 · 권한을 허용해 주세요' : '카메라 연결 중…'), DW / 2, DH / 2 - 20);
       if(!REC.ready){
         ctx.font = recFont(22, 700); ctx.fillStyle = '#33475e';
         ctx.fillText('카메라 녹화는 https:// 주소에서 동작합니다', DW / 2, DH / 2 + 40);
@@ -5282,13 +5454,15 @@ apply(DATA);
     REC.toastT = setTimeout(function(){ t.classList.remove('show'); }, ms || 2600);
   }
   function recPaint(){
-    var b = $('recBadge'), dot = $('recCtl');
+    var b = $('recBadge');
     var mm = Math.floor(REC.elapsed / 60000), ss = Math.floor(REC.elapsed / 1000) % 60;
     var time = recPad2(mm) + ':' + recPad2(ss);
     if(b){
       b.className = REC.on ? (REC.paused ? 'paused' : 'rec') : '';
       b.innerHTML = '<i class="rdot"></i>' + (REC.on ? (REC.paused ? '일시정지 ' : 'REC ') + time : '대기 · ' + time);
     }
+    /* 녹화 중에는 하단 바·설정 서랍·회전 배지를 모두 숨긴다 */
+    document.body.classList.toggle('rec-live', !!REC.on);
     var startBtn = $('recBtn'), pauseBtn = $('recPause'), stopBtn = $('recStop');
     if(startBtn){
       startBtn.textContent = REC.on ? '● 녹화 중' : '● 녹화 시작';
@@ -5301,7 +5475,7 @@ apply(DATA);
       pauseBtn.classList.toggle('paused', !!REC.paused);
     }
     if(stopBtn){
-      stopBtn.textContent = '■ 정지(저장)';
+      stopBtn.textContent = '■ 정지';
       stopBtn.disabled = !REC.on;
       stopBtn.classList.toggle('on', !!REC.on);
     }
@@ -5314,19 +5488,28 @@ apply(DATA);
       var camW = REC.video.w || REC.camW || pp.w, camH = REC.video.h || REC.camH || pp.h;
       var camFps = Math.round(REC.camFps || pp.fps);
       var fpsWarn = (pp.fps >= 60 && REC.ready && REC.camFps && REC.camFps < 50) ? ' (60fps 미지원)' : '';
-      /* 녹화 중에는 실제로 저장될 이름(시작 시점 REC.base)을 그대로 보여준다 — 쿼터가 바뀌어도 이름이 흔들리지 않는다 */
       var nowName = (REC.on && REC.base) ? (REC.base + REC.ext) : recFileName();
       info.textContent = '화질 ' + pp.label +
-        (REC.ready ? (' · 후면 카메라 ' + camW + '×' + camH + ' · ' + camFps + 'fps' + fpsWarn) : '') +
+        (REC.ready ? (' · 후면 카메라 ' + camW + '×' + camH + ' · ' + camFps + 'fps' + fpsWarn) : (REC.previewErr ? ' · 카메라 꺼짐(' + REC.previewErr + ')' : '')) +
         ' · ' + codec +
         (portrait ? ' · 📱 가로로 돌려 촬영하세요' : '') +
         (REC.mic ? ' · 🎤 마이크' : ' · 🔇 무음') + ' · 파일명 ' + nowName;
     }
-    var sync = $('recSync');
+    var sync = $('recSync'), stxt = $('recSyncTxt');
     if(sync){
+      var dot = sync.querySelector('i');
+      if(dot) dot.className = (RM.status === 'online' ? 'on' : (RM.on ? 'wait' : ''));
       var st = RM.on ? (RM.status === 'online' ? '연결됨' : '연결 중…') : '꺼짐';
-      sync.innerHTML = '<i class="' + (RM.status === 'online' ? 'on' : (RM.on ? 'wait' : '')) + '"></i>📡 ' + (RM.room || '—') + ' · ' + st;
+      if(stxt) stxt.textContent = '📡 ' + (RM.room || '—') + (RM.on && RM.status === 'online' ? ' · ' + st : (RM.on ? ' · ' + st : ''));
+      sync.setAttribute('aria-label', '방 코드 ' + (RM.room || '—') + ' · ' + st);
     }
+    /* 📱 가로 회전 권장 배지 — 녹화 전 + 세로 화면일 때만 */
+    var rot = $('recRotate');
+    if(rot) rot.hidden = !((window.innerHeight || 0) > (window.innerWidth || 0) && !REC.on);
+    if(REC.on) recCfgShow(false);
+    var rr = $('recRoom');
+    if(rr && document.activeElement !== rr && !rr.value) rr.value = RM.room || '';
+    recPlaceBar();
   }
   function recErr(msg, title){
     var e = $('recErr');
@@ -5382,42 +5565,37 @@ apply(DATA);
   async function recStart(){
     if(REC.on){ if(REC.paused) recResume(); return; }
     REC.err = null;
+    recCfgShow(false);
+    recEnterImmersive();                        // ● 녹화 시작 → 자동 전체화면 + 가로 잠금
     var md = navigator.mediaDevices;
     if(!md || !md.getUserMedia){
       recErr('이 브라우저에서는 카메라를 열 수 없습니다.<br>카메라 녹화는 <b>https://</b> 주소에서 동작합니다.', '카메라 사용 불가');
       return;
     }
     var pp = recP();
-    recApplyCanvas();                                   // 카메라를 열기 전에 캔버스를 프리셋 해상도로
-    try {
-      REC.cam = await md.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: pp.w }, height: { ideal: pp.h },
-          frameRate: { ideal: pp.fps, max: pp.fps }     // 720p 60fps 는 60fps 로 요청 (미지원 기기는 가까운 값으로 열린다)
-        },
-        audio: false
-      });
-    } catch(e){
-      var nm = (e && e.name) || '';
-      if(nm === 'NotAllowedError' || nm === 'SecurityError'){
-        recErr('카메라 권한이 차단되었습니다.<br>주소창의 자물쇠(권한)에서 <b>카메라 허용</b>으로 바꾼 뒤 다시 시도해 주세요.<br>카메라 녹화는 <b>https://</b> 주소에서 동작합니다.', '카메라 권한 필요');
-      } else if(nm === 'NotFoundError' || nm === 'OverconstrainedError'){
-        recErr('후면 카메라를 찾지 못했습니다.<br>다른 앱이 카메라를 쓰고 있지 않은지 확인해 주세요.', '카메라를 찾을 수 없음');
-      } else {
-        recErr('카메라를 열지 못했습니다. (' + nm + ')<br>카메라 녹화는 <b>https://</b> 주소에서 동작합니다.', '카메라 오류');
-      }
-      return;
+    recApplyCanvas();
+    if(!REC.cam){                               // 대기 중 프리뷰가 이미 카메라를 잡고 있으면 그대로 쓴다
+      try {
+        REC.cam = await md.getUserMedia({
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: pp.w }, height: { ideal: pp.h },
+            frameRate: { ideal: pp.fps, max: pp.fps }
+          },
+          audio: false
+        });
+      } catch(e){ recCamError(e); return; }
     }
-    $('recErr').hidden = true;
+    if($('recErr')) $('recErr').hidden = true;
     try {
       recVideoEl.srcObject = REC.cam;
       await recVideoEl.play().catch(function(){});
     } catch(e){}
     REC.ready = true;
+    REC.previewErr = '';
     recCamSettings();
     /* 마이크(현장음) — 체육관 소리가 뭉개지지 않게 자동 보정을 모두 끈다 */
-    if(REC.micOn){
+    if(REC.micOn && !REC.mic){
       try {
         REC.mic = await md.getUserMedia({
           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
@@ -5900,6 +6078,7 @@ apply(DATA);
     recReleaseMic();
     recSleep();
     recPaint();
+    recPreview();                       // 카메라가 닫혔으면 프리뷰를 다시 열어 녹화 전 화면으로 복귀
     if(blob) recToast('저장 완료 · ' + name);
   }
   function recDownload(blob, name){
@@ -5915,9 +6094,10 @@ apply(DATA);
     } catch(e){}
   }
   function recReleaseMic(){
-    if(REC.cam){ try { REC.cam.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} }
+    /* v2-14.3: 저장이 끝나도 카메라 프리뷰는 그대로 두고 마이크만 놓는다
+       (정지 후 곧바로 녹화 전 화면 + 프리뷰로 복귀) */
     if(REC.mic){ try { REC.mic.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} }
-    REC.cam = null; REC.mic = null; REC.stream = null;
+    REC.mic = null; REC.stream = null;
   }
   function recTicker(){
     if(REC.timer) clearInterval(REC.timer);
@@ -5960,7 +6140,7 @@ apply(DATA);
   }
   /* ?mode=record — 켜지자마자 전체화면 시도, 브라우저가 막으면 첫 터치/클릭(● 녹화 시작 포함)에서 진입 */
   function initRecordFullscreen(){
-    var tryAuto = function(){ try { fsEnter(); } catch(e){} recFsLabel(); };
+    var tryAuto = function(){ try { fsEnter(); } catch(e){} recLockLandscape(); recFsLabel(); recOrient(); };
     setTimeout(tryAuto, 120);
     setTimeout(tryAuto, 900);
     var off = function(){
@@ -5971,9 +6151,11 @@ apply(DATA);
     };
     var once = function(){
       off();
-      if((typeof fsOn === 'function') && fsOn()) return;
+      if((typeof fsOn === 'function') && fsOn()){ recLockLandscape(); return; }
       try { fsEnter(); } catch(e){}
+      recLockLandscape();
       setTimeout(recFsLabel, 400);
+      setTimeout(recOrient, 450);
     };
     document.addEventListener('pointerdown', once, true);
     document.addEventListener('touchstart', once, true);
@@ -5983,12 +6165,136 @@ apply(DATA);
     if(btn) btn.addEventListener('click', function(e){
       e.preventDefault();
       if((typeof fsOn === 'function') && fsOn()) recFsExit(); else { try { fsEnter(); } catch(err){} }
+      recLockLandscape();
       setTimeout(recFsLabel, 450);
+      setTimeout(recOrient, 500);
     });
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(function(ev){
       document.addEventListener(ev, function(){ setTimeout(recFsLabel, 60); });
     });
     recFsLabel();
+  }
+  /* =====================================================================
+     v2-14.3 🎥 레코더 화면 모드 — 녹화 전 바 / 녹화 중 최소 버튼 / 설정 서랍
+     · 하단 바·최소 버튼은 합성된 스코어바를 가리지 않도록 그 '위'로 띄운다
+     · 세로 화면에서는 16:9 프리뷰가 가운데 작게 보이므로 화면 맨 아래에 붙인다
+     ===================================================================== */
+  function recPlaceBar(){
+    var W = (recCanvas && recCanvas.width) || 1920, H = (recCanvas && recCanvas.height) || 1080;
+    var vw = window.innerWidth || 1, vh = window.innerHeight || 1;
+    var s = Math.min(vw / W, vh / H);
+    if(!(s > 0)) s = 1;
+    var barPx = (36 + 112 * (REC.scale || 1)) * s;          // 캔버스 하단 스코어바의 화면 높이
+    var v = (vh > vw) ? 10 : Math.round(barPx + 10);        // 세로: 화면 맨 아래 / 가로: 스코어바 위
+    try { document.documentElement.style.setProperty('--rec-bar-bottom', v + 'px'); } catch(e){}
+  }
+  function recOrient(){
+    var portrait = (window.innerHeight || 0) > (window.innerWidth || 0);
+    var rot = $('recRotate');
+    if(rot) rot.hidden = !(portrait && !REC.on);
+    recPlaceBar();
+  }
+  /* 가로 잠금 — 전체화면일 때만 허용되는 브라우저가 많아 조용히 시도한다 */
+  function recLockLandscape(){
+    try {
+      if(screen && screen.orientation && typeof screen.orientation.lock === 'function'){
+        var p = screen.orientation.lock('landscape');
+        if(p && p.catch) p.catch(function(){});
+      }
+    } catch(e){}
+  }
+  /* ● 녹화 시작 → 전체화면 + 가로 잠금 */
+  function recEnterImmersive(){
+    recLockLandscape();
+    try { if((typeof fsOn === 'function') && !fsOn()) fsEnter(); } catch(e){}
+    setTimeout(function(){ recLockLandscape(); recOrient(); }, 320);
+    setTimeout(function(){ recLockLandscape(); recOrient(); }, 1100);
+  }
+  function recCfgShow(on){
+    var c = $('recCfg');
+    var next = !!on && !REC.on;
+    if(c){
+      if(c.hidden === !next) return;
+      c.hidden = !next;
+    }
+    document.body.classList.toggle('rec-cfg-open', next);
+    var b = $('recCfgBtn');
+    if(b) b.setAttribute('aria-expanded', next ? 'true' : 'false');
+    recPlaceBar();
+  }
+  /* 카메라 오류 안내 (프리뷰·녹화 시작 공용) */
+  function recCamError(e){
+    var nm = (e && e.name) || '';
+    if(nm === 'NotAllowedError' || nm === 'SecurityError'){
+      recErr('카메라 권한이 차단되었습니다.<br>주소창의 자물쇠(권한)에서 <b>카메라 허용</b>으로 바꾼 뒤 다시 시도해 주세요.<br>카메라 녹화는 <b>https://</b> 주소에서 동작합니다.', '카메라 권한 필요');
+    } else if(nm === 'NotFoundError' || nm === 'OverconstrainedError'){
+      recErr('후면 카메라를 찾지 못했습니다.<br>다른 앱이 카메라를 쓰고 있지 않은지 확인해 주세요.', '카메라를 찾을 수 없음');
+    } else {
+      recErr('카메라를 열지 못했습니다. (' + nm + ')<br>카메라 녹화는 <b>https://</b> 주소에서 동작합니다.', '카메라 오류');
+    }
+  }
+  /* 녹화 전 프리뷰 — 들어오면 바로 카메라를 열어 화면을 가득 채운다 */
+  function recPreview(){
+    if(!recMode || REC.on || REC.cam) return;
+    var md = navigator.mediaDevices;
+    if(!md || !md.getUserMedia) return;
+    var pp = recP();
+    recApplyCanvas();
+    md.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: pp.w }, height: { ideal: pp.h },
+               frameRate: { ideal: pp.fps, max: pp.fps } },
+      audio: false
+    }).then(function(s){
+      if(REC.on){ try { s.getTracks().forEach(function(t){ t.stop(); }); } catch(e){} return; }
+      REC.cam = s;
+      REC.previewErr = '';
+      try { if(recVideoEl){ recVideoEl.srcObject = s; recVideoEl.play().catch(function(){}); } } catch(e){}
+      REC.ready = true;
+      recCamSettings();
+      recPaint();
+    }).catch(function(e){
+      REC.previewErr = (e && e.name) || 'err';
+      if($('recErr')) $('recErr').hidden = true;      // 진입 직후엔 큰 오류창 대신 안내만
+      recToast(REC.previewErr === 'NotAllowedError' ? '카메라 권한을 허용하면 프리뷰가 켜집니다' : '카메라 프리뷰를 열지 못했습니다 · ● 녹화 시작을 눌러 다시 시도하세요', 3600);
+      recPaint();
+    });
+  }
+  function recPreviewSoon(){ setTimeout(recPreview, 260); setTimeout(recPreview, 1400); }
+  /* v2-14.3 전용 바인딩 — 새 하단 바·서랍·최소 버튼 */
+  function recBindV143(){
+    var cfgBtn = $('recCfgBtn');
+    if(cfgBtn) cfgBtn.addEventListener('click', function(){ recCfgShow($('recCfg') && $('recCfg').hidden); });
+    var cfgClose = $('recCfgClose');
+    if(cfgClose) cfgClose.addEventListener('click', function(){ recCfgShow(false); });
+    var syncBtn = $('recSync');
+    if(syncBtn) syncBtn.addEventListener('click', function(){ recCfgShow(true); });
+    var exit = $('recExit');
+    if(exit) exit.addEventListener('click', function(){ recBackToControl(false); });
+    var back = $('recBack');
+    if(back) back.addEventListener('click', function(e){ e.preventDefault(); recBackToControl(true); });
+    /* 녹화 모드 키보드: Esc = 설정 닫기 */
+    document.addEventListener('keydown', function(e){
+      if(!recMode) return;
+      if(e.key === 'Escape' || e.key === 'Esc'){
+        var c = $('recCfg');
+        if(c && !c.hidden){ e.preventDefault(); recCfgShow(false); }
+      }
+    });
+    window.addEventListener('resize', recOrient);
+    window.addEventListener('orientationchange', function(){ setTimeout(recOrient, 150); });
+    recOrient();
+  }
+  /* 컨트롤 화면으로 — 녹화 중이면 한 번 더 확인(기존 동작 유지) */
+  function recBackToControl(needConfirm){
+    var go = function(){ try { location.href = location.href.split('#')[0].split('?')[0]; } catch(e){} };
+    if(!REC.on){ go(); return; }
+    if(needConfirm && S.mode !== 'break' && S.clock > 0){
+      REC.pendingBack = true;
+      recConfirmOpen();
+      return;
+    }
+    recStop(true);
+    recToast('저장했습니다 · 한 번 더 누르면 컨트롤 화면으로 이동합니다', 4000);
   }
   function initRecorder(){
     recCanvas = $('recCanvas');
@@ -6096,21 +6402,7 @@ apply(DATA);
       ri.addEventListener('input', function(){ this.value = rmSanitize(this.value); });
       ri.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); rmSetRoom(this.value); RM.role = 'recv'; rmSetOn(true); rmPaint(); recPaint(); } });
     }
-    var back = $('recBack');
-    if(back){
-      try { back.setAttribute('href', location.href.split('#')[0].split('?')[0]); } catch(e){}
-      back.addEventListener('click', function(e){
-        if(!REC.on) return;                     // 녹화 중이 아니면 그대로 컨트롤 화면으로
-        e.preventDefault();
-        if(S.mode !== 'break' && S.clock > 0){
-          REC.pendingBack = true;
-          recConfirmOpen();
-          return;
-        }
-        recStop(true);
-        recToast('저장했습니다 · 한 번 더 누르면 컨트롤 화면으로 이동합니다', 4000);
-      });
-    }
+    /* v2-14.3: #recBack(서랍) · #recExit(하단 바) 는 recBindV143 에서 한 번만 연결한다 */
     /* 키보드: Space 녹화 시작/일시정지 · S 정지 */
     document.addEventListener('keydown', function(e){
       if(!recMode) return;
@@ -6119,6 +6411,9 @@ apply(DATA);
       if(e.key === ' '){ e.preventDefault(); if(!REC.on) recStart(); else (REC.paused ? recResume() : recPause()); }
       else if(e.key === 's' || e.key === 'S'){ e.preventDefault(); recStop(); }
     });
+    recBindV143();               // v2-14.3: 하단 바 · 설정 서랍 · 최소 버튼
+    recPreviewSoon();            // v2-14.3: 들어오면 카메라 프리뷰가 화면을 가득 채운다
+    recOrient();                 // v2-14.3: 세로면 가로 회전 안내 배지
     recPaint();
     recTicker();
     initRecordFullscreen();      // ?mode=record 도 열리자마자 전체화면 시도(막히면 첫 터치)
@@ -6133,6 +6428,22 @@ apply(DATA);
   window.__recPresets = REC_PRESETS;
   window.__recStop = recStop;
   window.__recPause = recPause;
+  /* v2-14.3 진단용 훅 — 동기화(0ms 직결 · 시계 보간) 검증에 쓴다 */
+  window.__sync = {
+    room: function(){ return RM.room; },
+    cid: function(){ return RM.cid; },
+    channel: function(){ return lcName(); },
+    lcName: lcName,
+    apply: rmApplyState,
+    echo: rmOnMessage,          // 가짜 MQTT 패킷 주입(검증용)
+    tp: tickPacket,             // 작은 시계 틱 패킷
+    pkt: statePacket,
+    tick: rmTick,
+    anchor: function(){ return RM.anchor ? { clock:RM.anchor.clock, shot:RM.anchor.shot, running:RM.anchor.running,
+      shotOn:RM.anchor.shotOn, at:RM.anchor.at } : null; },
+    clock: function(){ return { clock:S.clock, shot:S.shot, running:running, shotOn:S.shotOn }; },
+    senders: function(){ return LC.bySrc; }
+  };
   window.__recResume = recResume;
   window.__recDownload = recDownload;
   window.__recFixDuration = recFixDuration;    // 저장 전 길이 헤더 보정(테스트용)
@@ -6160,7 +6471,7 @@ apply(DATA);
     on:false, role:'send', room:'', status:'off', cur:'',
     ws:null, buf:null, cid:'', topic:'', cand:0, retry:0,
     pingT:null, connT:null, reT:null, pubT:null, lastPub:0,
-    anchor:null, lastRx:0, chipT:null
+    anchor:null, lastRx:0, chipT:null, seq:0, lastTickP:0, lastFull:0
   };
   var RM_KEYS = { room:'bball_sb2_rm_room', role:'bball_sb2_rm_role', pos:'bball_sb2_obs_pos' };
 
@@ -6375,10 +6686,17 @@ apply(DATA);
     RM.pingT = setInterval(function(){ if(RM.ws) rmSend(mqPingPkt()); }, 25000);
     rmPaint();
   }
-  function rmPublishState(force){
+  /* 시계만 흐른 틱 — 120바이트 안팎 (books·팀명 등은 싣지 않는다) */
+  function tickPacket(){
+    return { type:'tick', sentAt:Date.now(), seq:(RM.seq += 1), running:!!running,
+             clock:Math.round(S.clock), shot:Math.round(S.shot), shotOn:!!S.shotOn, src:RM.cid, v:3 };
+  }
+  function rmPublishState(force, pkt){
     if(!RM.on || RM.role !== 'send' || RM.status !== 'online' || !RM.ws) return;
     var now = performance.now();
-    var gap = 600;                       // 0.6초 안에 또 바뀌면 합쳐서 한 번만 보낸다
+    /* v2-14.3: 경기·샷클락이 흐르는 동안은 250~400ms(300ms) 간격, 멈춰 있으면 800ms 간격
+       — 조작(점수·쿼터 등)은 force 로 즉시 보낸다 */
+    var gap = (running || S.shotOn) ? 300 : 800;
     if(!force && now - RM.lastPub < gap){
       if(!RM.pubT){
         RM.pubT = setTimeout(function(){ RM.pubT = null; rmPublishState(true); }, Math.max(40, gap - (now - RM.lastPub)));
@@ -6386,7 +6704,11 @@ apply(DATA);
       return;
     }
     RM.lastPub = now;
-    rmSend(mqPubPkt(RM.topic, JSON.stringify({ type:'state', state:snapshot(), t:Date.now(), src:RM.cid }), true));
+    /* 전체 상태 = 조작·접속 직후·2.5초 하트비트(retain) / 시계만 흐른 틱 = 작은 tick 패킷(비보존) */
+    var full = !!force || !RM.lastFull || (now - RM.lastFull > 2500);
+    var out = full ? (pkt || statePacket()) : tickPacket();
+    if(full) RM.lastFull = now;
+    rmSend(mqPubPkt(RM.topic, JSON.stringify(out), full));
   }
   function rmOnMessage(topic, payload){
     var m;
@@ -6396,33 +6718,108 @@ apply(DATA);
       if(m.type === 'req' && RM.role === 'send') rmPublishState(true);
       return;
     }
-    if(m.type !== 'state' || !m.state) return;
+    if(m.type !== 'state' && m.type !== 'tick') return;
     if(RM.role !== 'recv') return;
-    rmApplyState(m.state);
+    if(rmEchoGuard(m)) return;                                    // 로컬 우선(에코 무시)
+    if(m.type === 'tick'){ rmApplyClock(m); return; }             // 시계만 흐른 틱
+    if(!m.state) return;
+    rmApplyState(m.state, { sentAt: m.sentAt, seq: m.seq });
   }
-  function rmApplyState(state){
-    RM.lastRx = Date.now();
-    RM.anchor = {
-      clock: Math.max(0, +state.clock || 0),
-      shot: Math.max(0, +state.shot || 0),
-      running: !!state.running,
-      shotOn: !!state.shotOn,
-      at: performance.now()
-    };
-    applyRemote(state);
+  /* v2-14.3 수신 상태 적용 — 패킷 지연(now - sentAt)을 보정하고,
+     큰 오차(>250ms)일 때만 스냅 / 작은 오차는 보간 타이머가 부드럽게 수렴시킨다 */
+  /* 같은 기기 직결 패킷이 방금 왔으면, 그보다 오래된 MQTT 에코는 버린다 */
+  function rmEchoGuard(m){
+    if(!LC.lastAt || (performance.now() - LC.lastAt) >= 1500) return false;
+    var lseq = LC.bySrc[m.src];
+    if(typeof lseq === 'number' && typeof m.seq === 'number' && m.seq <= lseq) return true;
+    if(!m.sentAt) return true;                            // 시각 없는 옛 형식 에코
+    if(m.sentAt === LC.lastSentAt) return true;           // 같은 상태의 복제(에코)
+    return false;
+  }
+  /* tick 패킷 — 시계·샷클락만 보정한다(render 없이 앵커만 갱신 → rmTick 이 보간) */
+  function rmApplyClock(m){
+    var nowP = performance.now(), nowW = Date.now();
+    var lag = 150;
+    if(typeof m.sentAt === 'number'){ lag = nowW - m.sentAt; if(!(lag >= 0 && lag <= 500)) lag = 150; }
+    var clock = Math.max(0, +m.clock || 0), shot = Math.max(0, +m.shot || 0);
+    var run = !!m.running, sOn = !!m.shotOn;
+    RM.anchor = { clock: clock, shot: shot, running: run, shotOn: sOn, at: nowP - lag };
+    RM.lastRx = nowW; RM.lastTickP = nowP;
+    if(run){
+      var compC = Math.max(0, clock - lag);
+      if(Math.abs(compC - S.clock) > 250) S.clock = compC;      // 250ms 이상만 스냅
+    } else {
+      S.clock = clock;                                          // 정지: 정확한 값
+    }
+    if(sOn && S.mode !== 'break'){
+      var compS = Math.max(0, shot - lag);
+      if(Math.abs(compS - S.shot) > 250) S.shot = compS;
+    } else if(!sOn){
+      S.shot = shot;
+    }
+    if(running !== run) running = run;
     if(obsMode) obsRender();
   }
-  /* 수신 기기: 메시지 사이에도 시계·샷클락이 부드럽게 흐르도록 로컬 보간 */
+  function rmApplyState(state, meta){
+    if(!state || typeof state !== 'object') return;
+    meta = meta || {};
+    var nowP = performance.now(), nowW = Date.now();
+    var sentAt = (typeof meta.sentAt === 'number') ? meta.sentAt : (+state.sentAt || 0);
+    var lag = 0;
+    if(meta.local){ lag = 0; }                                       // 같은 기기: 지연 없음
+    else if(sentAt){ lag = nowW - sentAt; if(!(lag >= 0 && lag <= 500)) lag = 150; }
+    else { lag = 150; }                                              // 시각 정보가 없으면 기본 150ms
+    var clock = Math.max(0, +state.clock || 0);
+    var shot = Math.max(0, +state.shot || 0);
+    var run = !!state.running, sOn = !!state.shotOn;
+    RM.anchor = { clock: clock, shot: shot, running: run, shotOn: sOn, at: nowP - lag };
+    RM.lastRx = nowW; RM.lastTickP = nowP;
+    var compC = run ? Math.max(0, clock - lag) : clock;               // 지금 시점으로 앞당긴 값
+    var compS = sOn ? Math.max(0, shot - lag) : shot;
+    var st = {};
+    for(var k in state){ if(Object.prototype.hasOwnProperty.call(state, k)) st[k] = state[k]; }
+    st.clock = (!run || Math.abs(compC - S.clock) > 250) ? compC : S.clock;   // 250ms 이상만 스냅
+    st.shot  = (!sOn  || Math.abs(compS - S.shot)  > 250) ? compS : S.shot;
+    applyRemote(st);
+    if(obsMode) obsRender();
+  }
+  /* 수신 기기: 메시지 사이에도 시계·샷클락이 부드럽게 흐르도록 로컬 보간
+     · 자체 타이머로 흘리고(running), 패킷 예상값과 250ms 이상 벌어지면 그때만 스냅
+     · running === false 면 즉시 멈추고 보낸 값과 정확히 맞춘다 */
   function rmTick(){
     if(!RM.anchor) return;
+    var nowP = performance.now();
     if(Date.now() - RM.lastRx > 25000){ RM.anchor = null; return; }   // 25초 조용하면 보간 중지
-    var el = performance.now() - RM.anchor.at;
-    if(el < 0) return;
-    if(RM.anchor.running) S.clock = Math.max(0, RM.anchor.clock - el);
-    if(S.mode !== 'break' && RM.anchor.shotOn) S.shot = Math.max(0, RM.anchor.shot - el);
-    if(obsMode) obsRender(); else paintClock();
+    var a = RM.anchor;
+    var dt = RM.lastTickP ? (nowP - RM.lastTickP) : 100;
+    RM.lastTickP = nowP;
+    if(dt < 0) dt = 0;
+    if(dt > 1000) dt = 1000;
+    var changed = false;
+    if(a.running){
+      var pred = Math.max(0, a.clock - (nowP - a.at));
+      var base = Math.max(0, S.clock - dt);                 // 자체 타이머로 흐르게
+      if(Math.abs(pred - base) > 250) base = pred;          // 250ms 이상 벌어지면 스냅
+      else base = base + (pred - base) * 0.35;              // 작은 오차는 부드럽게 수렴
+      S.clock = Math.max(0, base);
+      changed = true;
+    } else if(Math.abs(S.clock - a.clock) > 0.5){
+      S.clock = a.clock;                                    // 정지: 정확한 값으로 즉시 맞춤
+      changed = true;
+    }
+    if(S.mode !== 'break' && a.shotOn){
+      var predS = Math.max(0, a.shot - (nowP - a.at));
+      var baseS = Math.max(0, S.shot - dt);
+      if(Math.abs(predS - baseS) > 250) baseS = predS;
+      else baseS = baseS + (predS - baseS) * 0.35;
+      S.shot = Math.max(0, baseS);
+      changed = true;
+    }
+    if(changed){
+      if(obsMode) obsRender();
+      else if(!recMode) paintClock();
+    }
   }
-
   /* ---------- 화면 갱신 ---------- */
   function rmStatusText(){
     if(!RM.on) return '꺼짐';
@@ -6603,6 +7000,8 @@ apply(DATA);
     if(r === RM.room){ rmPaint(); return; }
     RM.room = r;
     RM.anchor = null;
+    LC.bySrc = {};
+    lcOpen();                                   // v2-14.3: 방이 바뀌면 같은 기기 직결 채널도 새로 연다
     rmStore();
     if(RM.on){ RM.cand = 0; RM.retry = 0; rmOpenNext(); }
     rmPaint();
@@ -6630,6 +7029,7 @@ apply(DATA);
       if(mp) obsPos = mp[1];
     } catch(e){}
     rmStore();                                  /* 열 때 확정된 방 코드를 남겨 다음에도 그대로 쓴다 */
+    lcOpen();                                   /* v2-14.3: 같은 기기 0ms 직결 채널(방 코드별) */
     document.body.classList.toggle('obs-overlay', obsMode);
     document.documentElement.classList.toggle('obs-html', obsMode);
     setObsPos(obsPos);
