@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.4</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.5</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
 <script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
 <style>
@@ -1627,6 +1627,20 @@
     #recCfg #recCtl > .rc-pair{grid-column:auto}
   }
 
+  /* v2-14.5 bitrate — 행이 하나 늘어난 만큼 짧은 가로 화면(폰 가로 360~412px)은 한 줄씩 압축해 스크롤 없이 */
+  @media (max-height:540px) and (orientation:landscape){
+    .rcfg-head{padding:5px 12px}
+    .rcfg-body{padding:6px 10px 8px}
+    #recCfg #recCtl{gap:5px}
+    #recCfg .rc-row{height:31px}
+    #recCfg .rc-tog{height:31px}
+    #recCfg #recCtl > button{height:31px}
+    #recCfg .rc-ps{height:27px}
+    #recCfg #recRoom{height:28px}
+    #recCfg #recCtl .rc-mini{height:28px}
+    #recCfg #recBack{height:31px}
+  }
+
   /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
   #recRotate{
     position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:7;
@@ -1798,6 +1812,7 @@ apply(DATA);
   · v2-14: 휴식 45초 + 픽사베이 NBA 비트(45초 편집) · 쿼터 종료/휴식끝 한국어 안내(톤 연동)
   · v2-14: 블랙 팀 실버 테두리 · 설정 보정 항목 삭제 + 휘슬 통일 · 3파전 순서 변경 · 📺 출력 라벨
   · v2-14: ?mode=record — 후면 카메라 + 하단 스코어바 합성 + MediaRecorder 저장 (화질 1080p 30fps 기본 / 720p 60fps 전환)
+  · v2-14.5: 🎞️ 영상 비트레이트 선택 — 표준 8Mbps(기본) / 고화질 14Mbps (localStorage 기억 · 녹화 중 변경 잠금)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
   · v2-13: 경기결과는 모바일/좁은 화면에서 같은 화면의 풀스크린 오버레이로 열려 점수·리셋이 즉시 반영(새 창은 직접호출+postMessage+400ms 폴링)
@@ -2258,6 +2273,11 @@ apply(DATA);
             <span>화질</span>
             <button type="button" class="rc-ps" data-preset="1080p30" aria-pressed="true">1080p 30fps</button>
             <button type="button" class="rc-ps" data-preset="720p60" aria-pressed="false">720p 60fps</button>
+          </div>
+          <div class="rc-row rc-preset rc-span2" id="recBitrate" role="group" aria-label="비트레이트 설정"><!-- v2-14.5 bitrate -->
+            <span>비트레이트</span>
+            <button type="button" class="rc-ps" data-bps="8000000" aria-pressed="true">표준 8Mbps</button>
+            <button type="button" class="rc-ps" data-bps="14000000" aria-pressed="false">고화질 14Mbps</button>
           </div>
           <div class="rc-row rc-span2"><span>스코어바</span><input id="recScale" type="range" min="70" max="130" step="1" value="100" aria-label="스코어바 크기"><b id="recScaleVal">100%</b></div>
           <label class="rc-tog"><input id="recHevc" type="checkbox"> 🎬 HEVC(H.265) 우선</label>
@@ -4620,7 +4640,7 @@ apply(DATA);
                '· 아직 진행하지 않은 쿼터는 —로 표시하고, 팀 전적은 기록이 없는 경기를 빼고 집계합니다.<br>' +
                '· 점수가 바뀌면 이 창도 즉시 갱신됩니다(직접 호출 + postMessage + 400ms 폴링).</p>';
 
-    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.4</span><span>' +
+    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.5</span><span>' +
                (M.three ? '3파전 · 매치업 × 쿼터' : '2파전 · 경기 G1~G4 × 쿼터') + '</span></div>';
 
     var tpl = document.getElementById('resClientTpl');
@@ -5256,6 +5276,7 @@ apply(DATA);
     lastBreak:false, autoStopT:null, watchT:null, confirmOpen:false, lastDur:0,
     hevc:true, fellBack:false,         // hevc: 🎬 HEVC(H.265) 우선으로 저장할지(기본 ON, 기기 미지원 시 자동 폴백)
     preset:'1080p30',                  // 🎚️ 화질 프리셋 — '1080p30'(기본) / '720p60'
+    bps:8000000,                       // 🎞️ 영상 비트레이트 — 8000000(표준 8Mbps) / 14000000(고화질 14Mbps)
     camW:0, camH:0, camFps:0           // 실제로 열린 카메라의 해상도·프레임(요청과 다를 수 있어 표시용으로 보관)
   };
   var REC_HEVC_KEY = 'bball_sb2_rec_hevc';
@@ -5266,6 +5287,13 @@ apply(DATA);
     '720p60' : { id:'720p60',  w:1280, h:720,  fps:60, vbps:8000000, label:'720p 60fps',  note:'움직임이 더 부드럽습니다' }
   };
   var REC_DEFAULT_PRESET = '1080p30';
+  var REC_BPS_KEY = 'bball_sb2_rec_bps';
+  /* 🎞️ 영상 비트레이트 — 해상도·fps(화질 프리셋)와 별개로 파일 크기와 디테일을 정한다 */
+  var REC_BPS = {
+    8000000 : { v:8000000,  label:'8Mbps',  note:'표준 화질 · 파일이 가볍습니다' },
+    14000000: { v:14000000, label:'14Mbps', note:'고화질 · 더 선명하고 파일이 큽니다' }
+  };
+  var REC_DEFAULT_BPS = 8000000;
   var recCanvas = null, recCtx = null, recVideoEl = null, recRaf = 0;
   var REC_Q = ['1Q', '2Q', '3Q', '4Q', 'OT'];
   var REC_FONT = '"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,-apple-system,sans-serif';
@@ -5609,6 +5637,7 @@ apply(DATA);
       stopBtn.classList.toggle('on', !!REC.on);
     }
     recPaintPreset();
+    recPaintBitrate();                             // v2-14.5: 녹화 시작/정지에 맞춰 비트레이트 버튼 잠금·해제
     var info = $('recInfo');
     if(info){
       var pp = recP();
@@ -5618,7 +5647,7 @@ apply(DATA);
       var camFps = Math.round(REC.camFps || pp.fps);
       var fpsWarn = (pp.fps >= 60 && REC.ready && REC.camFps && REC.camFps < 50) ? ' (60fps 미지원)' : '';
       var nowName = (REC.on && REC.base) ? (REC.base + REC.ext) : recFileName();
-      info.textContent = '화질 ' + pp.label +
+      info.textContent = '화질 ' + pp.label + ' · ' + recBps().label +
         (REC.ready ? (' · 후면 카메라 ' + camW + '×' + camH + ' · ' + camFps + 'fps' + fpsWarn) : (REC.previewErr ? ' · 카메라 꺼짐(' + REC.previewErr + ')' : '')) +
         ' · ' + codec +
         (portrait ? ' · 📱 가로로 돌려 촬영하세요' : '') +
@@ -5756,7 +5785,7 @@ apply(DATA);
       REC.stream = stream;
       REC.fellBack = false;
       REC.mime = recPickMime();
-      var opts = { videoBitsPerSecond: pp.vbps || 8000000, audioBitsPerSecond: 128000 };
+      var opts = { videoBitsPerSecond: recBps().v, audioBitsPerSecond: 128000 };
       REC.rec = recNewRecorder(stream, opts);            // HEVC 생성 실패 시 H.264/MP4 로 즉시 재시도
       REC.ext = /mp4/i.test(REC.mime) ? '.mp4' : '.webm';
       REC.chunks = [];
@@ -5770,10 +5799,41 @@ apply(DATA);
       REC.lastBreak = (S.mode === 'break');   // 이미 휴식 중에 시작했다면 자동 저장을 걸지 않는다
       recWake();
       recPaint();
-      recToast('녹화 시작 · ' + pp.label + ' · ' + recFileName() + (REC.fellBack ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 2400);
+      recToast('녹화 시작 · ' + pp.label + ' · ' + recBps().label + ' · ' + recFileName() + (REC.fellBack ? ' (H.264 폴백)' : ''), REC.fellBack ? 4200 : 3000);
     } catch(e){
       recErr('이 브라우저는 캔버스 녹화(MediaRecorder)를 지원하지 않습니다.<br>' + (e && e.message ? e.message : ''), '녹화를 시작할 수 없습니다');
     }
+  }
+  /* ---------------- 🎞️ 영상 비트레이트 (표준 8Mbps 기본 / 고화질 14Mbps) ---------------- */
+  function recBpsDef(v){ return REC_BPS[v] || REC_BPS[REC_DEFAULT_BPS]; }
+  function recBps(){ return recBpsDef(REC.bps); }
+  function recPaintBitrate(){
+    var wrap = $('recBitrate');
+    if(!wrap) return;
+    var btns = wrap.querySelectorAll('.rc-ps');
+    var cur = recBps().v;
+    for(var i = 0; i < btns.length; i++){
+      var on = (parseInt(btns[i].getAttribute('data-bps'), 10) === cur);
+      btns[i].classList.toggle('on', on);
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      btns[i].disabled = !!REC.on;                // 녹화 중에는 변경 금지
+    }
+  }
+  /* 비트레이트 전환 — 녹화 중에는 막고, 대기 중이면 다음 녹화 설정만 바꾼다 */
+  function recSetBitrate(v, silent){
+    v = parseInt(v, 10);
+    if(!REC_BPS[v]) return false;
+    if(REC.on){
+      recPaintBitrate();
+      recToast('녹화 중에는 비트레이트를 바꿀 수 없습니다 · ■ 정지(저장) 후 전환해 주세요', 3000);
+      return false;
+    }
+    REC.bps = v;
+    try { localStorage.setItem(REC_BPS_KEY, String(v)); } catch(e){}
+    recPaintBitrate();
+    recPaint();
+    if(!silent) recToast('비트레이트 ' + recBps().label + ' · ' + recBps().note, 2600);
+    return true;
   }
   /* 🎚️ 화질 전환 — 녹화 중에는 막고, 대기 중이면 캔버스·다음 녹화 설정을 새 프리셋으로 바꾼다 */
   function recSetPreset(id, silent){
@@ -6464,6 +6524,19 @@ apply(DATA);
         pBtns[pi].addEventListener('click', function(){ recSetPreset(this.getAttribute('data-preset')); });
       }
     }
+    /* 🎞️ 비트레이트 복원 — 저장된 값이 없으면 표준 8Mbps(기본) */
+    try {
+      var sbps = parseInt(localStorage.getItem(REC_BPS_KEY), 10);
+      REC.bps = REC_BPS[sbps] ? sbps : REC_DEFAULT_BPS;
+    } catch(e){ REC.bps = REC_DEFAULT_BPS; }
+    recPaintBitrate();
+    var bWrap = $('recBitrate');
+    if(bWrap){
+      var bBtns = bWrap.querySelectorAll('.rc-ps');
+      for(var bi = 0; bi < bBtns.length; bi++){
+        bBtns[bi].addEventListener('click', function(){ recSetBitrate(this.getAttribute('data-bps')); });
+      }
+    }
     /* 🎬 HEVC 우선 설정 복원 (localStorage) */
     try { REC.hevc = (localStorage.getItem(REC_HEVC_KEY) !== '0'); } catch(e){ REC.hevc = true; }
     var hevcBox = $('recHevc');
@@ -6574,6 +6647,9 @@ apply(DATA);
   window.__recSetPreset = recSetPreset;        // 화질 전환 (테스트·자동화용)
   window.__recPreset = function(){ return REC.preset; };
   window.__recPresets = REC_PRESETS;
+  window.__recSetBitrate = recSetBitrate;      // 비트레이트 전환 (테스트·자동화용)
+  window.__recBps = function(){ return REC.bps; };
+  window.__recBitrates = REC_BPS;
   window.__recStop = recStop;
   window.__recPause = recPause;
   /* v2-14.3 진단용 훅 — 동기화(0ms 직결 · 시계 보간) 검증에 쓴다 */
