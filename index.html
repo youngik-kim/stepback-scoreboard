@@ -2141,6 +2141,7 @@ apply(DATA);
     컨트롤 툴바 · 설정 시트 · 레코드 메인 · 레코더 설정 · 보드/출력화면 다섯 곳(새 창 · noopener),
     출력화면의 첫 터치 전체화면은 배지 클릭을 건너뛴다.
     출력화면(?mode=display) STEPBACK 문구 + 게임시간·점수·샷클락 숫자 대폭 확대(2·3자리 넘침 없음)
+    웹 레코더 BGM 기본값 OFF — 저장값이 없으면 조용히 시작(설정에서 켜면 기억)
   · v2-14.6: 🎬 코덱 선택 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 미지원 기기 자동 H.264 폴백) (localStorage 기억 · 녹화 중 잠금)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
@@ -7058,6 +7059,7 @@ apply(DATA);
      · 파일: '우리는 STEPBACK'(스텝백 공식 응원곡) 01:45~끝 50.19초 클립을
        MP3 128kbps 로 base64 내장 → 매번 유튜브에 접속하지 않는다
      · idle + BGM ON 이면 자동 재생(1.3초 페이드인) · 자동재생이 차단되면 첫 터치에서
+     · v2-14.10: 기본값 OFF — 저장값이 없으면 조용히 시작하고, 설정에서 켜면 기억한다
      · ● 녹화 시작 → 0.3초 페이드아웃 후 pause·되감기(영상에 BGM 이 섞이지 않게)
      · ■ 정지(저장) 후 idle 복귀 → 처음부터 다시 1.3초 페이드인
      · 일시정지 중에는 켜지 않는다 · 곡 끝(루프)은 끝 2초 페이드아웃 → 재시작 페이드인
@@ -7074,7 +7076,7 @@ apply(DATA);
     '3': { id:'3', label:'BGM 3', ready:false, note:'준비 중입니다' }
   };
   var BGM = {
-    on:true, track:'1', el:null, blocked:false, want:false,
+    on:false, track:'1', el:null, blocked:false, want:false,   /* v2-14.10: 기본 OFF */
     fadeT:0, gesture:false, errShown:false
   };
   function bgmTrack(){ return BGM_TRACKS[BGM.track] || BGM_TRACKS['1']; }
@@ -7403,8 +7405,9 @@ apply(DATA);
       if(e.key === ' '){ e.preventDefault(); if(!REC.on) recStart(); else (REC.paused ? recResume() : recPause()); }
       else if(e.key === 's' || e.key === 'S'){ e.preventDefault(); recStop(); }
     });
-    /* 🎵 BGM 복원 — 저장값이 없으면 ON · BGM 1 */
-    try { BGM.on = (localStorage.getItem(BGM_KEY) !== '0'); } catch(e){ BGM.on = true; }
+    /* 🎵 BGM 복원 — 저장값이 없으면 OFF(기본 꺼짐) · BGM 1  (v2-14.10 사용자 요청)
+       · 설정에서 켜면 '1' 이 저장되어 다음에도 켜진 채로 시작한다 */
+    try { BGM.on = (localStorage.getItem(BGM_KEY) === '1'); } catch(e){ BGM.on = false; }
     try {
       var btrack = String(localStorage.getItem(BGM_TRACK_KEY) || '1');
       BGM.track = (BGM_TRACKS[btrack] && BGM_TRACKS[btrack].ready) ? btrack : '1';
