@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.7</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.8</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
 <script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
 <style>
@@ -82,7 +82,6 @@
   /* v2-14: 폰 폭에서도 '📺 출력'처럼 버튼명이 함께 보이게 — 라벨을 숨기지 않고 간격·글자를 압축 */
   @media (max-width:560px){
     #topbar{padding:0 7px;gap:4px;justify-content:flex-end}
-    #topbar .tb-brand{display:none}
     .tb-btn{height:28px;padding:0 6px;font-size:10.5px;letter-spacing:-.02em;gap:2px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
     .tb-btn.ico{width:28px;font-size:13px;padding:0}
     .tb-btn.res{padding:0 6px;font-weight:900}
@@ -764,7 +763,17 @@
   }
   .sheet h2{margin:0;font-size:17px;font-weight:800;letter-spacing:.02em}
   /* v2-14.4: 설정 제목 오른쪽 — 🔄 초기화(하단 리셋과 같은 동작) · ✕ 닫기 */
-  .sheet .shead{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+  /* v2-14.8: 첫 줄 STEPBACK SCOREBOARD 브랜드, 둘째 줄 제목 + 🔄 초기화 · ✕ 닫기 */
+  .sheet .shead{display:flex;flex-direction:column;align-items:stretch;gap:9px;min-width:0}
+  .sheet .shead-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+  .sheet-brand{
+    display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+    height:30px;padding:0 13px;border-radius:999px;
+    background:linear-gradient(180deg,rgba(245,197,66,.16),rgba(245,197,66,.05));
+    border:1px solid rgba(245,197,66,.46);
+  }
+  .sheet-brand .sb-t1{font-style:normal;font-size:12px;font-weight:900;letter-spacing:.14em;color:#fff}
+  .sheet-brand .sb-t2{font-style:normal;font-size:10.5px;font-weight:900;letter-spacing:.18em;color:#ffd766}
   .sheet .shead h2{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sheet .shead-btns{display:flex;align-items:center;gap:6px;flex:0 0 auto}
   .sheet .hbtn{
@@ -945,8 +954,8 @@
   }
   /* 조작 화면 상단바 */
   .tb-brand{display:flex;align-items:center;gap:8px;min-width:0}
-  .tb-brand b{font-size:10.5px;font-weight:900;letter-spacing:.2em;color:#8c9aae;white-space:nowrap}
-  .tb-brand .tb-sub{font-size:10px;font-weight:800;letter-spacing:.1em;color:#4f5a6b;white-space:nowrap}
+  .tb-brand b{font-size:11px;font-weight:900;letter-spacing:.2em;color:#e2eaf6;white-space:nowrap}
+  .tb-brand .tb-sub{font-size:10px;font-weight:800;letter-spacing:.1em;color:#8593a8;white-space:nowrap}
   .tb-logo{height:16px;width:43px}
   body.mode-remote .tb-brand b, body.mode-remote .tb-brand .tb-sub{display:none}
   body.mode-remote .tb-logo{height:14px;width:37px}
@@ -1665,9 +1674,93 @@
     #recCfg #recBitrate .rc-ps{font-size:12px}
   }
 
+  /* v2-14.8 brand — 레코드 메인(녹화 전) 상단 배지 */
+  #recBrand{
+    position:fixed;left:50%;z-index:7;transform:translateX(-50%);
+    top:calc(10px + env(safe-area-inset-top,0px));
+    display:inline-flex;align-items:center;gap:9px;
+    height:46px;padding:0 20px;border-radius:999px;
+    background:linear-gradient(180deg,rgba(15,23,36,.92),rgba(7,11,18,.78));
+    border:1.5px solid rgba(245,197,66,.82);
+    box-shadow:0 12px 30px rgba(0,0,0,.55), 0 0 24px rgba(245,197,66,.16),
+               inset 0 1px 0 rgba(255,255,255,.10);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    pointer-events:none;white-space:nowrap;max-width:calc(100vw - 20px);
+  }
+  #recBrand .rb-t1{
+    font-size:17px;font-weight:900;letter-spacing:.10em;color:#fff;
+    text-shadow:0 1px 6px rgba(0,0,0,.7);
+  }
+  #recBrand .rb-t2{
+    font-size:13.5px;font-weight:900;letter-spacing:.18em;color:#ffd766;
+    padding-left:9px;border-left:1.5px solid rgba(245,197,66,.55);
+  }
+  body.rec-live #recBrand{display:none !important}
+
+  /* v2-14.8 brand — 레코더 설정 헤더 칩 */
+  .rcfg-head{flex-wrap:wrap;row-gap:7px}
+  .rcfg-brand{
+    display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;
+    height:28px;padding:0 12px;border-radius:999px;
+    background:linear-gradient(180deg,rgba(245,197,66,.16),rgba(245,197,66,.05));
+    border:1px solid rgba(245,197,66,.50);
+  }
+  .rcfg-brand .rb-t1{font-style:normal;font-size:12px;font-weight:900;letter-spacing:.14em;color:#fff}
+  .rcfg-brand .rb-t2{font-style:normal;font-size:10.5px;font-weight:900;letter-spacing:.18em;color:#ffd766}
+  #recCfg .rcfg-head b{flex:1 1 auto;justify-content:center;min-width:0}
+  @media (max-width:520px){
+    /* 세로 폰: 브랜드가 첫 줄 전체, 둘째 줄에 ⚙️ 레코더 설정 + ✕ 닫기 */
+    #recCfg .rcfg-brand{flex:1 0 100%;justify-content:center;height:26px}
+    #recCfg .rcfg-head b{flex:1 1 auto;justify-content:flex-start;font-size:14.5px}
+    #recCfgClose{height:34px;min-width:78px;padding:0 11px;font-size:13px}
+  }
+  @media (max-height:420px) and (orientation:landscape){
+    #recBrand{height:40px;padding:0 16px;gap:8px;top:calc(6px + env(safe-area-inset-top,0px))}
+    #recBrand .rb-t1{font-size:15px}
+    #recBrand .rb-t2{font-size:12px}
+  }
+  /* v2-14.8 세로 폰 — 브랜드 헤더 줄이 늘어난 만큼 본문을 압축해
+     하단 '📡 연결됨 | 방 코드 | 연결' 줄까지 스크롤 없이 한 화면에 */
+  @media (max-width:520px) and (orientation:portrait){
+    .rcfg-card{max-height:92vh;max-height:92dvh}
+    .rcfg-body{padding:10px 12px 12px}
+    #recCfg #recCtl{gap:6px}
+    #recCfg .rc-row{height:40px;padding:0 10px;gap:8px}
+    #recCfg .rc-ps{height:32px}
+    #recCfg .rc-tog{height:40px;padding:0 10px;gap:8px}
+    #recCfg #recCtl > button{height:42px}
+    #recCfg #recFs{height:42px!important}
+    #recCfg #recRoom{height:34px}
+    #recCfg #recCtl .rc-mini{height:34px}
+    #recCfg #recBack{height:40px}
+    #recCfg #recInfo{font-size:12px;line-height:1.45}
+  }
+  /* v2-14.8 아주 짧은 세로 화면(≤700px 높이, 예: 360×640) — 두 토글을 한 줄로 모아
+     '📡 연결됨 | 방 코드 | 연결' + '✕ 컨트롤 화면으로' 까지 스크롤 없이 */
+  @media (max-width:430px) and (max-height:700px) and (orientation:portrait){
+    .rcfg-card{max-height:96vh;max-height:96dvh}
+    .rcfg-head{padding:7px 12px;row-gap:5px}
+    #recCfg .rcfg-brand{height:22px}
+    #recCfgClose{height:30px;min-width:72px;font-size:12px}
+    .rcfg-body{padding:8px 10px 10px}
+    #recCfg #recCtl{gap:5px;grid-template-columns:1fr 1fr}
+    #recCfg #recCtl > *{grid-column:1 / -1}
+    #recCfg #recCtl > .rc-tog{grid-column:auto}
+    #recCfg .rc-row{height:36px}
+    #recCfg .rc-ps{height:28px;font-size:12px}
+    #recCfg .rc-tog{height:36px;padding:0 8px;gap:6px;font-size:11.5px}
+    #recCfg .rc-tog input{width:16px;height:16px}
+    #recCfg #recCtl > button{height:38px;font-size:13px}
+    #recCfg #recFs{height:38px!important;font-size:13px!important}
+    #recCfg #recRoom{height:32px}
+    #recCfg #recCtl .rc-mini{height:32px;font-size:12.5px;padding:0 11px}
+    #recCfg #recBack{height:36px}
+    #recCfg #recInfo{font-size:11px;line-height:1.35}
+  }
+
   /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
   #recRotate{
-    position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:7;
+    position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:7;
     padding:8px 14px;border-radius:999px;max-width:calc(100vw - 16px);white-space:nowrap;
     background:rgba(10,16,24,.74);border:1px solid rgba(245,197,66,.55);color:#ffe27a;
     font-size:12.5px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.45);
@@ -1696,6 +1789,40 @@
   body.display-mode{background:#000}
   body.display-mode #app{background:#000}
   body.display-mode #viewport{background:#000}
+  /* v2-14.8 brand — 폰(≤820px, body.mode-remote 레이아웃) 컨트롤 상단 브랜드 */
+  @media (max-width:820px){
+    body.mode-remote #topbar{
+      flex:0 0 auto;min-height:0;
+      flex-direction:column;align-items:stretch;justify-content:flex-start;
+      gap:3px;padding:3px 6px 4px;
+    }
+    body.mode-remote #topbar .tb-brand{
+      display:inline-flex;align-self:center;gap:7px;
+      height:24px;padding:0 12px;border-radius:999px;
+      background:linear-gradient(180deg,rgba(245,197,66,.16),rgba(245,197,66,.05));
+      border:1px solid rgba(245,197,66,.44);
+    }
+    body.mode-remote #topbar .tb-brand b{display:inline;font-size:11px;letter-spacing:.22em;color:#ffe9a8}
+    body.mode-remote #topbar .tb-brand .tb-sub{display:none}
+    body.mode-remote #topbar .tb-logo{display:none}
+    body.mode-remote .tb-right{justify-content:center;flex-wrap:wrap}
+  }
+  @media (min-width:821px){
+    /* 데스크톱도 같은 금색 브랜드 칩 — 상단 왼쪽에서 한눈에 */
+    #topbar .tb-brand{
+      height:26px;padding:0 12px;border-radius:999px;
+      background:linear-gradient(180deg,rgba(245,197,66,.13),rgba(245,197,66,.04));
+      border:1px solid rgba(245,197,66,.40);
+    }
+    #topbar .tb-brand b{color:#ffe9a8}
+    #topbar .tb-logo{display:none}
+  }
+  @media (max-width:404px){
+    body.mode-remote #topbar{padding:2px 4px 3px;gap:2px}
+    body.mode-remote #topbar .tb-brand{height:22px;padding:0 10px;gap:6px}
+    body.mode-remote #topbar .tb-brand b{font-size:10px;letter-spacing:.18em}
+  }
+
   body.display-mode #board{
     border:0;border-radius:0;
     box-shadow:none;
@@ -1839,6 +1966,8 @@ apply(DATA);
   · v2-14.5: 🎞️ 영상 비트레이트 선택 — 표준 8Mbps(기본) / 고화질 14Mbps (localStorage 기억 · 녹화 중 변경 잠금)
   · v2-14.7: 🖼️ 화질(1080p/720p) · 🎞️ FPS(30/60) 분리 + 비트레이트 3단계(8/12/16Mbps) (localStorage 기억 · 녹화 중 잠금)
   · v2-14.7: ✨ 스포츠 화질 보정(기본 ON) — 카메라 프레임에만 대비·윤곽 보정, 스포츠 맞춤 / 📷 연속 초점·노출·WB 고정
+  · v2-14.8: STEPBACK SCOREBOARD 브랜드 — 레코드 메인(녹화 전 배지 · 녹화 중 자동 숨김) · 레코더 설정 헤더 ·
+    컨트롤 툴바(폰 포함) · 설정 · 시간 모달 헤더
   · v2-14.6: 🎬 코덱 선택 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 미지원 기기 자동 H.264 폴백) (localStorage 기억 · 녹화 중 잠금)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
@@ -2078,10 +2207,13 @@ apply(DATA);
   <div class="modal" id="modal" hidden>
     <div class="sheet">
       <div class="shead">
-        <h2>설정 · 시간</h2>
-        <div class="shead-btns">
-          <button class="hbtn reset" type="button" data-cmd="reset" aria-label="경기 전체 초기화 (점수·파울·시계)"><span class="hi" aria-hidden="true">🔄</span> 초기화</button>
-          <button class="hbtn hclose" type="button" data-cmd="modal-close" aria-label="설정 닫기"><span class="hi" aria-hidden="true">✕</span> 닫기</button>
+        <span class="sheet-brand" aria-label="STEPBACK SCOREBOARD"><em class="sb-t1">STEPBACK</em><em class="sb-t2">SCOREBOARD</em></span>
+        <div class="shead-row">
+          <h2>설정 · 시간</h2>
+          <div class="shead-btns">
+            <button class="hbtn reset" type="button" data-cmd="reset" aria-label="경기 전체 초기화 (점수·파울·시계)"><span class="hi" aria-hidden="true">🔄</span> 초기화</button>
+            <button class="hbtn hclose" type="button" data-cmd="modal-close" aria-label="설정 닫기"><span class="hi" aria-hidden="true">✕</span> 닫기</button>
+          </div>
         </div>
       </div>
 
@@ -2269,6 +2401,11 @@ apply(DATA);
   <canvas id="recCanvas" width="1920" height="1080"></canvas>
   <video id="recVideo" playsinline muted style="display:none"></video>
 
+  <!-- v2-14.8 브랜드 — 녹화 전 메인 화면 상단 (녹화가 시작되면 자동으로 숨김) -->
+  <div id="recBrand" aria-label="STEPBACK SCOREBOARD">
+    <b class="rb-t1">STEPBACK</b><span class="rb-t2">SCOREBOARD</span>
+  </div>
+
   <!-- 📱 세로일 때만: 가로 회전 권장 배지 -->
   <div id="recRotate" hidden>📱 가로로 돌리면 16:9 촬영 화면이 꽉 차게 보여요</div>
 
@@ -2291,6 +2428,7 @@ apply(DATA);
   <div id="recCfg" hidden role="dialog" aria-modal="true" aria-label="레코더 설정">
     <div class="rcfg-card">
       <div class="rcfg-head">
+        <span class="rcfg-brand" aria-label="STEPBACK SCOREBOARD"><em class="rb-t1">STEPBACK</em><em class="rb-t2">SCOREBOARD</em></span>
         <b>⚙️ 레코더 설정</b>
         <button id="recCfgClose" type="button" aria-label="설정 닫기">✕ 닫기</button>
       </div>
