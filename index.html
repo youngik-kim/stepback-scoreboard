@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.10</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.11</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
 <script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
 <style>
@@ -1919,23 +1919,12 @@
     box-shadow:none;
   }
   /* ===================================================================
-     v2-14.10 ① STEPBACK 배지 = 유튜브 채널 링크
-     · 다섯 곳(컨트롤 툴바 · 설정 시트 · 레코드 메인 · 레코더 설정 · 보드/출력화면) 배지를
-       <a> 로 바꿔 누르면 새 창에서 https://youtube.com/@stepback_basketball 이 열린다
+     v2-14.11 ① STEPBACK 배지 = 링크 없는 표시용 배지 (v2-14.10 의 유튜브 링크 제거)
+     · 다섯 곳(컨트롤 툴바 · 설정 시트 · 레코드 메인 · 레코더 설정 · 보드/출력화면) 모두
+       <a href> 없이 눌러도 아무 일도 일어나지 않는다 — 배지 디자인·자리·크기는 그대로
      =================================================================== */
-  a.tb-brand,a.sheet-brand,a.rcfg-brand,a.brand{
-    text-decoration:none;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;
-    transition:filter .15s ease,transform .12s ease,background-color .15s ease,box-shadow .15s ease,border-color .15s ease;
-  }
-  a.tb-brand:hover,a.sheet-brand:hover,a.rcfg-brand:hover{filter:brightness(1.18)}
-  a.tb-brand:active,a.sheet-brand:active,a.rcfg-brand:active{transform:translateY(1px) scale(.985)}
-  a.brand{display:inline-flex;align-items:center;gap:11px;padding:3px 10px;border-radius:12px;min-width:0}
-  a.brand:hover{background:rgba(245,197,66,.10)}
-  a.brand:active{transform:translateY(1px)}
-  /* 레코드 메인 배지는 영상 위 오버레이라 원래 pointer-events:none — 링크가 되도록 되살린다 */
-  a#recBrand{pointer-events:auto}
-  a#recBrand:hover{border-color:#ffe27a;box-shadow:0 12px 30px rgba(0,0,0,.55),0 0 32px rgba(245,197,66,.36),inset 0 1px 0 rgba(255,255,255,.12)}
-  a#recBrand:active{transform:translateX(-50%) translateY(1px) scale(.985)}
+  /* 보드 헤더 배지 정렬 — v2-14.10 의 링크(<a>) 스타일 중 레이아웃에 쓰이던 값만 남긴다 */
+  .brand{display:inline-flex;align-items:center;gap:11px;padding:3px 10px;border-radius:12px;min-width:0}
   /* 보드 헤더 배지 — 크레스트 PNG 대신 유니폼 서체(STEPBACK 흰색 · SCOREBOARD 골드) + 농구공 */
   .brand .rb-ball{width:26px;height:26px;margin:0;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6))}
   .brand .rb-t1,.brand .rb-t2{
@@ -2137,9 +2126,10 @@ apply(DATA);
     BGM 1(활성)/2·3(준비중 · disabled) 선택
   · v2-14.9: STEPBACK SCOREBOARD 배지 개편 — 유니폼 각진 블록 세리프(Graduate 내장) + 농구공 SVG,
     STEPBACK 흰색 외곽선 · SCOREBOARD 골드. 레코드 메인 · 레코더 설정 · 컨트롤 툴바 · 설정 시트
-  · v2-14.10: STEPBACK 배지를 눌러 유튜브 채널(https://youtube.com/@stepback_basketball)로 이동 —
-    컨트롤 툴바 · 설정 시트 · 레코드 메인 · 레코더 설정 · 보드/출력화면 다섯 곳(새 창 · noopener),
-    출력화면의 첫 터치 전체화면은 배지 클릭을 건너뛴다.
+  · v2-14.10: STEPBACK 배지를 링크(<a>)로 — 컨트롤 툴바 · 설정 시트 · 레코드 메인 · 레코더 설정 ·
+    보드/출력화면 다섯 곳, 출력화면의 첫 터치 전체화면은 배지 클릭을 건너뛰었다.
+  · v2-14.11: STEPBACK 배지의 유튜브 채널 링크를 모두 제거 — 다섯 곳 모두 <a href> 없이 표시용 배지로
+    되돌려 눌러도 새 창이 열리지 않는다. 디자인·레이아웃·출력화면 확대 크기는 v2-14.10 그대로.
     출력화면(?mode=display) STEPBACK 문구 + 게임시간·점수·샷클락 숫자 대폭 확대(2·3자리 넘침 없음)
     웹 레코더 BGM 기본값 OFF — 저장값이 없으면 조용히 시작(설정에서 켜면 기억)
   · v2-14.6: 🎬 코덱 선택 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 미지원 기기 자동 H.264 폴백) (localStorage 기억 · 녹화 중 잠금)
@@ -2164,8 +2154,7 @@ apply(DATA);
 
   <div id="stagecol">
     <div id="topbar">
-      <a class="tb-brand" href="https://youtube.com/@stepback_basketball" target="_blank" rel="noopener noreferrer" data-yt-brand
-         aria-label="STEPBACK SCOREBOARD — 유튜브 채널 열기" title="STEPBACK SCOREBOARD — 유튜브 채널 열기"><i class="brandlogo tb-logo"></i><i class="rb-ball" aria-hidden="true"></i><b class="tb-t1">STEPBACK</b><span class="tb-t2">SCOREBOARD</span><span class="tb-sub">조작</span></a>
+      <span class="tb-brand" aria-label="STEPBACK SCOREBOARD"><i class="brandlogo tb-logo"></i><i class="rb-ball" aria-hidden="true"></i><b class="tb-t1">STEPBACK</b><span class="tb-t2">SCOREBOARD</span><span class="tb-sub">조작</span></span>
       <div class="tb-right">
         <button class="tb-btn" data-cmd="panel">☰ 조작</button>
         <button class="tb-btn" data-cmd="display" title="출력용 창 열기">📺<span class="lbl"> 출력</span></button>
@@ -2193,10 +2182,9 @@ apply(DATA);
         </div>
 
         <div class="hdrcenter">
-          <a class="brand" href="https://youtube.com/@stepback_basketball" target="_blank" rel="noopener noreferrer" data-yt-brand
-             aria-label="STEPBACK SCOREBOARD — 유튜브 채널 열기" title="STEPBACK SCOREBOARD — 유튜브 채널 열기">
+          <div class="brand" role="img" aria-label="STEPBACK SCOREBOARD">
             <i class="rb-ball" aria-hidden="true"></i><b class="rb-t1">STEPBACK</b><em class="rb-t2">SCOREBOARD</em>
-          </a>
+          </div>
           <div class="qwrap">
             <span class="gchip" id="gameBadge" hidden aria-label="1경기">1경기</span>
             <span class="qlbl">QUARTER</span>
@@ -2382,8 +2370,7 @@ apply(DATA);
   <div class="modal" id="modal" hidden>
     <div class="sheet">
       <div class="shead">
-        <a class="sheet-brand" href="https://youtube.com/@stepback_basketball" target="_blank" rel="noopener noreferrer" data-yt-brand
-           aria-label="STEPBACK SCOREBOARD — 유튜브 채널 열기" title="STEPBACK SCOREBOARD — 유튜브 채널 열기"><i class="rb-ball" aria-hidden="true"></i><em class="sb-t1">STEPBACK</em><em class="sb-t2">SCOREBOARD</em></a>
+        <span class="sheet-brand" aria-label="STEPBACK SCOREBOARD"><i class="rb-ball" aria-hidden="true"></i><em class="sb-t1">STEPBACK</em><em class="sb-t2">SCOREBOARD</em></span>
         <div class="shead-row">
           <h2>설정 · 시간</h2>
           <div class="shead-btns">
@@ -2578,10 +2565,9 @@ apply(DATA);
   <video id="recVideo" playsinline muted style="display:none"></video>
 
   <!-- v2-14.8 브랜드 — 녹화 전 메인 화면 상단 (녹화가 시작되면 자동으로 숨김) -->
-  <a id="recBrand" href="https://youtube.com/@stepback_basketball" target="_blank" rel="noopener noreferrer" data-yt-brand
-     aria-label="STEPBACK SCOREBOARD — 유튜브 채널 열기" title="STEPBACK SCOREBOARD — 유튜브 채널 열기">
+  <div id="recBrand" aria-label="STEPBACK SCOREBOARD">
     <i class="rb-ball" aria-hidden="true"></i><b class="rb-t1">STEPBACK</b><span class="rb-t2">SCOREBOARD</span>
-  </a>
+  </div>
 
   <!-- 📱 세로일 때만: 가로 회전 권장 배지 -->
   <div id="recRotate" hidden>📱 가로로 돌리면 16:9 촬영 화면이 꽉 차게 보여요</div>
@@ -2605,8 +2591,7 @@ apply(DATA);
   <div id="recCfg" hidden role="dialog" aria-modal="true" aria-label="레코더 설정">
     <div class="rcfg-card">
       <div class="rcfg-head">
-        <a class="rcfg-brand" href="https://youtube.com/@stepback_basketball" target="_blank" rel="noopener noreferrer" data-yt-brand
-           aria-label="STEPBACK SCOREBOARD — 유튜브 채널 열기" title="STEPBACK SCOREBOARD — 유튜브 채널 열기"><i class="rb-ball" aria-hidden="true"></i><em class="rb-t1">STEPBACK</em><em class="rb-t2">SCOREBOARD</em></a>
+        <span class="rcfg-brand" aria-label="STEPBACK SCOREBOARD"><i class="rb-ball" aria-hidden="true"></i><em class="rb-t1">STEPBACK</em><em class="rb-t2">SCOREBOARD</em></span>
         <b>⚙️ 레코더 설정</b>
         <button id="recCfgClose" type="button" aria-label="설정 닫기">✕ 닫기</button>
       </div>
@@ -5002,7 +4987,7 @@ apply(DATA);
                '· 아직 진행하지 않은 쿼터는 —로 표시하고, 팀 전적은 기록이 없는 경기를 빼고 집계합니다.<br>' +
                '· 점수가 바뀌면 이 창도 즉시 갱신됩니다(직접 호출 + postMessage + 400ms 폴링).</p>';
 
-    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.10</span><span>' +
+    var foot = '<div class="foot"><span>STEPBACK SCOREBOARD v2-14.11</span><span>' +
                (M.three ? '3파전 · 매치업 × 쿼터' : '2파전 · 경기 G1~G4 × 쿼터') + '</span></div>';
 
     var tpl = document.getElementById('resClientTpl');
@@ -5147,25 +5132,6 @@ apply(DATA);
   }
   function closeModal(){ $('modal').hidden = true; document.body.classList.remove('modal-open'); }
 
-  /* v2-14.10 — STEPBACK 배지는 유튜브 채널 링크.
-     배지 터치가 '첫 터치 = 전체화면'·보드 클릭 핸들러에 먹히지 않게 한다. */
-  function sbYtBadge(ev){
-    var t = ev && ev.target;
-    if(!t || !t.closest) return false;
-    return !!t.closest('a[data-yt-brand]');
-  }
-  function sbYtBadgeBind(){
-    var i, t, list = document.querySelectorAll('a[data-yt-brand]');
-    for(i = 0; i < list.length; i++){
-      (function(a){
-        var stop = function(e){ e.stopPropagation(); };   /* 보드/패널 클릭으로 새지 않게 */
-        a.addEventListener('pointerdown', stop, false);
-        a.addEventListener('touchstart', stop, false);
-        a.addEventListener('click', stop, false);
-      })(list[i]);
-    }
-  }
-
   var fsWarned = false;
   /* 전체화면 상태 */
   function fsOn(){
@@ -5199,8 +5165,7 @@ apply(DATA);
       document.removeEventListener('click', once, true);
       document.removeEventListener('keydown', once, true);
     };
-    var once = function(ev){
-      if(sbYtBadge(ev)) return;          /* v2-14.10: 배지 클릭은 유튜브 링크로 — 전체화면이 삼키지 않는다 */
+    var once = function(){
       off();
       if(fsOn()) return;                 /* 이미 전체화면이면 그냥 넘어간다 */
       if(fsEnter()) fsAutoAt = performance.now();
@@ -6892,8 +6857,7 @@ apply(DATA);
       document.removeEventListener('click', once, true);
       document.removeEventListener('keydown', once, true);
     };
-    var once = function(ev){
-      if(sbYtBadge(ev)) return;          /* v2-14.10: 배지 클릭은 유튜브 링크로 */
+    var once = function(){
       off();
       if((typeof fsOn === 'function') && fsOn()){ recLockLandscape(); return; }
       try { fsEnter(); } catch(e){}
@@ -8092,7 +8056,6 @@ apply(DATA);
   /* ================= 시작 ================= */
   if(isDisplay){
     document.body.classList.add('display-mode');
-    sbYtBadgeBind();                  /* v2-14.10: STEPBACK 배지 → 유튜브 채널 링크 */
     initDisplayFullscreen();          /* 최대 크기 + 자동 전체화면(차단 시 첫 터치) */
     document.addEventListener('dblclick', function(){ if(!fsJustEntered()) toggleFS(); });
     ['pointermove', 'pointerdown', 'touchstart', 'keydown'].forEach(function(ev){
