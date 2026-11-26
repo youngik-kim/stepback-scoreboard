@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>STEPBACK SCOREBOARD · 전자점수판 v2.14.11</title>
+<title>STEPBACK SCOREBOARD · 전자점수판 v2.15.0</title>
 <!-- 오버레이 모드(?mode=obs)는 첫 페인트부터 배경이 투명해야 방송 화면에 검은 판이 스치지 않는다 -->
-<script>try{if(/([?&])(mode=obs|obs=1)(&|$)/.test(location.search)){document.documentElement.className += ' obs-html';}}catch(e){}</script>
+<script>try{var q=location.search;if(/([?&])(mode=obs|obs=1)(&|$)/.test(q)){document.documentElement.className+=' obs-html';}var tm=/([?&])theme=([a-z]+)/.exec(q),th=tm?tm[2]:null;if(!th){try{th=localStorage.getItem('bball_sb2_obs_theme');}catch(e){}}if(!/^(default|broadcast|pill|bold)$/.test(th||''))th='default';document.documentElement.setAttribute('data-obtheme',th);}catch(e){}</script>
 <style>
   :root{
     color-scheme: dark;
@@ -1267,6 +1267,282 @@
     box-shadow:0 0 0 1.5px #e2e8f0 inset, 0 0 14px rgba(226,232,240,.28);
   }
   /* ===================================================================
+     v2-15.0 🎛️ OBS 오버레이 디자인 테마 — 기본 / 방송 중계형 / 컴팩트 필 / 볼드 스포츠
+     · html[data-obtheme] 하나로 전환한다(인라인 스크립트가 첫 페인트 전에 심는다)
+     · 컨트롤 화면 하단의 콤팩트 바 미리보기와 ?mode=obs 오버레이가 같은 모양을 쓴다
+     · 기본(default)은 v2-14.11 그대로 — 기존 링크·북마크는 아무것도 바뀌지 않는다
+     =================================================================== */
+  /* ---------- ② 방송 중계형 — 화면 폭을 쓰는 하단 띠 · 팀 컬러 라인 ---------- */
+  :root[data-obtheme="broadcast"]{ --obs-h: 74px; }
+  :root[data-obtheme="broadcast"] body.mode-remote{ --obs-h: 54px; }
+  :root[data-obtheme="broadcast"] body:not(.display-mode):not(.solo-display):not(.obs-overlay) #obsBar{
+    width:calc(100% - 12px);max-width:calc(100% - 12px);
+    gap:clamp(8px,1.2vw,18px);padding:0 clamp(10px,1.4vw,22px);
+    border-radius:5px;border:1px solid #2b3949;
+    background:linear-gradient(180deg,#111b27 0%,#070b11 64%,#0a1017 100%);
+    box-shadow:0 16px 36px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  :root[data-obtheme="broadcast"] #obsBar::before{
+    content:'';position:absolute;left:0;right:0;top:0;height:3px;border-radius:4px 4px 0 0;
+    background:linear-gradient(90deg,var(--c-home) 0 50%,var(--c-away) 50% 100%);
+    opacity:.95;
+  }
+  :root[data-obtheme="broadcast"] #obsBar::after{
+    content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+    background:linear-gradient(90deg,rgba(245,197,66,0),rgba(245,197,66,.5) 16%,rgba(245,197,66,.5) 84%,rgba(245,197,66,0));
+  }
+  :root[data-obtheme="broadcast"] #obsBar .ob-spacer{display:block;flex:1 1 auto}
+  /* 폰 세로(리모컨)에서는 글자만 한 단 작게 — 폭은 화면을 다 쓰는 띠 그대로 */
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-name{
+    font-size:clamp(12px,3.1vw,15px);max-width:clamp(46px,17vw,110px);flex:0 1 auto;
+  }
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-bar{width:3px;height:26px}
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-score{font-size:clamp(18px,5vw,26px);min-width:0}
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-clock{font-size:clamp(15px,4.4vw,22px)}
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-shot .num{font-size:clamp(15px,4.2vw,20px)}
+  :root[data-obtheme="broadcast"] #obsBar .ob-bar{width:5px;height:38px;border-radius:1px}
+  :root[data-obtheme="broadcast"] .ob-name{
+    font-size:clamp(17px,2vw,28px);letter-spacing:.02em;text-transform:uppercase;
+    padding-bottom:3px;border-bottom:2px solid transparent;
+  }
+  :root[data-obtheme="broadcast"] .ob-team.home .ob-name{border-bottom-color:var(--c-home-soft)}
+  :root[data-obtheme="broadcast"] .ob-team.away .ob-name{border-bottom-color:var(--c-away-soft)}
+  :root[data-obtheme="broadcast"] .ob-foul{font-size:clamp(11px,1.2vw,16px);padding:3px 7px;border-radius:4px}
+  :root[data-obtheme="broadcast"] .ob-score{
+    font-size:clamp(28px,3.4vw,50px);min-width:clamp(42px,4.6vw,70px);
+    color:var(--amber);text-shadow:none;
+  }
+  :root[data-obtheme="broadcast"] #obHomeScore{color:var(--c-home-text);text-shadow:0 0 20px var(--c-home-glow)}
+  :root[data-obtheme="broadcast"] #obAwayScore{color:var(--c-away-text);text-shadow:0 0 20px var(--c-away-glow)}
+  :root[data-obtheme="broadcast"] .ob-center{
+    gap:clamp(6px,.9vw,12px);padding:0 clamp(8px,1.1vw,16px);border-left:1px solid #26313f;border-right:1px solid #26313f;
+    background:linear-gradient(180deg,rgba(245,197,66,.07),rgba(245,197,66,0));
+  }
+  :root[data-obtheme="broadcast"] .ob-q{font-size:clamp(11px,1.2vw,17px);padding:4px 8px;border-radius:4px}
+  :root[data-obtheme="broadcast"] .ob-clock{font-size:clamp(26px,3.1vw,46px);color:#fff}
+  :root[data-obtheme="broadcast"] .ob-shot .num{font-size:clamp(22px,2.7vw,40px)}
+  :root[data-obtheme="broadcast"] .ob-shot::after{height:26px;background:#26313f}
+  :root[data-obtheme="broadcast"] body.obs-overlay #obsBar{
+    width:min(1400px,calc(100vw - 24px));height:clamp(54px,9.6vh,84px);
+    border-radius:5px;border:1px solid #2b3949;
+    background:linear-gradient(180deg,rgba(17,27,39,.97),rgba(7,11,17,.97));
+    box-shadow:0 16px 36px rgba(0,0,0,.6);
+  }
+
+  /* ---------- ③ 컴팩트 필 — 얇은 캑슐, 화면을 덜 가림 ---------- */
+  :root[data-obtheme="pill"]{ --obs-h: 58px; }
+  :root[data-obtheme="pill"] body.mode-remote{ --obs-h: 46px; }
+  :root[data-obtheme="pill"] #obsBar .ob-logo{display:none}
+  :root[data-obtheme="pill"] body:not(.display-mode):not(.solo-display):not(.obs-overlay) #obsBar{
+    gap:7px;padding:0 14px;border-radius:999px;
+    background:rgba(6,10,16,.88);border:1px solid rgba(160,180,210,.24);
+    box-shadow:0 8px 22px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  }
+  :root[data-obtheme="pill"] .ob-bar{width:3px;height:22px;border-radius:2px}
+  :root[data-obtheme="pill"] .ob-name{font-size:clamp(13px,1.6vw,20px);max-width:min(22vw,200px);letter-spacing:.01em}
+  :root[data-obtheme="pill"] .ob-foul{font-size:clamp(9px,1vw,12px);padding:2px 6px;border-radius:5px;border-color:rgba(245,197,66,.28)}
+  :root[data-obtheme="pill"] .ob-score{font-size:clamp(20px,2.4vw,34px);min-width:clamp(30px,3.2vw,44px)}
+  :root[data-obtheme="pill"] .ob-score.three{font-size:clamp(17px,2.1vw,29px)}
+  :root[data-obtheme="pill"] .ob-center{gap:7px;padding:0 9px;border-color:rgba(160,180,210,.18)}
+  :root[data-obtheme="pill"] .ob-g{font-size:clamp(9px,.9vw,12px);padding:2px 5px}
+  :root[data-obtheme="pill"] .ob-q{font-size:clamp(9px,1vw,13px);padding:2px 6px;border-radius:5px}
+  :root[data-obtheme="pill"] .ob-clock{font-size:clamp(19px,2.2vw,32px);letter-spacing:-.01em}
+  :root[data-obtheme="pill"] .ob-shot{gap:4px}
+  :root[data-obtheme="pill"] .ob-shot .lbl{font-size:9px;letter-spacing:.08em}
+  :root[data-obtheme="pill"] .ob-shot .num{font-size:clamp(17px,1.9vw,28px)}
+  :root[data-obtheme="pill"] .ob-shot::after{height:18px}
+  :root[data-obtheme="pill"] body.mode-remote #app #obsBar{gap:5px;padding:0 10px;border-radius:999px}
+  :root[data-obtheme="pill"] body.obs-overlay #obsBar{
+    height:clamp(38px,6vh,50px);gap:6px;padding:0 12px;border-radius:999px;
+    background:rgba(6,10,16,.9);border:1px solid rgba(160,180,210,.24);
+  }
+
+  /* ---------- ④ 볼드 스포츠 — 큰 글자 · 팀 컬러 블록 ---------- */
+  :root[data-obtheme="bold"]{ --obs-h: 90px; }
+  :root[data-obtheme="bold"] body.mode-remote{ --obs-h: 64px; }
+  :root[data-obtheme="bold"] body:not(.display-mode):not(.solo-display):not(.obs-overlay) #obsBar{
+    gap:clamp(8px,1.1vw,16px);padding:0 clamp(10px,1.2vw,18px);border-radius:4px;
+    background:linear-gradient(180deg,#0e141c,#05070a);
+    border:2px solid var(--amber);
+    box-shadow:0 0 0 3px #05070a, 0 18px 40px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+  :root[data-obtheme="bold"] .ob-bar{width:6px;height:56px;border-radius:0}
+  :root[data-obtheme="bold"] .ob-name{
+    font-family:'SB Athletic','Graduate','Arial Black',Impact,'Haettenschweiler',sans-serif;
+    font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.01em;
+    font-size:clamp(18px,2.3vw,30px);padding:3px 11px;border-radius:2px;
+    background:var(--c-home);color:#080b10;box-shadow:0 2px 0 rgba(0,0,0,.45);
+  }
+  :root[data-obtheme="bold"] .ob-team.away .ob-name{background:var(--c-away)}
+  :root[data-obtheme="bold"][data-color-home="black"] .ob-team.home .ob-name,
+  :root[data-obtheme="bold"][data-color-away="black"] .ob-team.away .ob-name{
+    background:#0b0e13;color:#f2f6fc;box-shadow:inset 0 0 0 1.5px #e2e8f0;
+  }
+  :root[data-obtheme="bold"] .ob-foul{font-size:clamp(11px,1.2vw,16px);padding:4px 8px;border-radius:3px;background:rgba(245,197,66,.16)}
+  :root[data-obtheme="bold"] .ob-score{
+    font-family:'SB Athletic','Graduate','Arial Black',Impact,'Haettenschweiler',sans-serif;
+    font-size:clamp(32px,4vw,58px);min-width:clamp(46px,5vw,76px);transform:skewX(-7deg);
+    color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.9), 0 0 22px rgba(245,197,66,.22);
+  }
+  :root[data-obtheme="bold"] #obHomeScore{color:var(--c-home-text)}
+  :root[data-obtheme="bold"] #obAwayScore{color:var(--c-away-text)}
+  :root[data-obtheme="bold"] .ob-score.three{font-size:clamp(27px,3.4vw,50px)}
+  :root[data-obtheme="bold"] .ob-center{gap:9px;padding:0 12px;border-left:2px solid rgba(245,197,66,.45);border-right:2px solid rgba(245,197,66,.45)}
+  :root[data-obtheme="bold"] .ob-q{background:var(--amber);color:#080b10;font-size:clamp(12px,1.4vw,18px);padding:4px 9px;border-radius:3px;transform:skewX(-7deg)}
+  :root[data-obtheme="bold"] .ob-clock{
+    background:var(--amber);color:#080b10;padding:2px 12px;border-radius:3px;transform:skewX(-7deg);
+    font-size:clamp(27px,3.3vw,48px);box-shadow:0 3px 0 rgba(0,0,0,.55);
+  }
+  :root[data-obtheme="bold"] #obsBar.brk .ob-clock{background:#ff5a3c;color:#fff}
+  :root[data-obtheme="bold"] .ob-shot .num{font-size:clamp(24px,3vw,42px);text-shadow:2px 2px 0 rgba(0,0,0,.85), 0 0 18px rgba(16,232,117,.4)}
+  :root[data-obtheme="bold"] .ob-shot::after{height:30px;background:rgba(245,197,66,.35)}
+  :root[data-obtheme="bold"] body.mode-remote #app #obsBar{gap:6px;padding:0 10px}
+  :root[data-obtheme="bold"] body.obs-overlay #obsBar{
+    height:clamp(62px,10.6vh,94px);gap:clamp(8px,1.2vw,16px);border-radius:4px;
+    border:2px solid var(--amber);background:linear-gradient(180deg,#0e141c,#05070a);
+    box-shadow:0 16px 36px rgba(0,0,0,.62);
+  }
+
+  /* ---------- 폰 세로(리모컨) 보정 — 테마별 글자·간격 한 단 줄임 ---------- */
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-foul{font-size:9px;padding:2px 4px}
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-center{gap:5px;padding:0 8px}
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-q{font-size:10px;padding:2px 5px}
+  :root[data-obtheme="broadcast"] body.mode-remote .ob-shot::after{display:none}
+  :root[data-obtheme="pill"] body.mode-remote:not(.display-mode):not(.solo-display):not(.obs-overlay) #obsBar{gap:5px;padding:0 11px}
+  :root[data-obtheme="pill"] body.mode-remote .ob-g{display:none}
+  :root[data-obtheme="pill"] body.mode-remote .ob-bar{width:2px;height:18px;border-radius:2px}
+  :root[data-obtheme="pill"] body.mode-remote .ob-name{font-size:12.5px;max-width:62px;letter-spacing:-.01em}
+  :root[data-obtheme="pill"] body.mode-remote .ob-foul{font-size:9px;padding:2px 4px}
+  :root[data-obtheme="pill"] body.mode-remote .ob-score{font-size:clamp(17px,4.6vw,22px);min-width:0}
+  :root[data-obtheme="pill"] body.mode-remote .ob-center{gap:4px;padding:0 6px}
+  :root[data-obtheme="pill"] body.mode-remote .ob-q{font-size:9.5px;padding:2px 5px}
+  :root[data-obtheme="pill"] body.mode-remote .ob-clock{font-size:clamp(15px,4.2vw,20px)}
+  :root[data-obtheme="pill"] body.mode-remote .ob-shot{gap:3px}
+  :root[data-obtheme="pill"] body.mode-remote .ob-shot .num{font-size:clamp(14px,4vw,19px)}
+  :root[data-obtheme="pill"] body.mode-remote .ob-shot::after{display:none}
+  :root[data-obtheme="bold"] body.mode-remote:not(.display-mode):not(.solo-display):not(.obs-overlay) #obsBar{gap:5px;padding:0 9px}
+  :root[data-obtheme="bold"] body.mode-remote .ob-bar{width:3px;height:30px}
+  :root[data-obtheme="bold"] body.mode-remote .ob-name{font-size:clamp(11px,3vw,15px);padding:2px 6px;letter-spacing:-.01em}
+  :root[data-obtheme="bold"] body.mode-remote .ob-foul{font-size:9px;padding:2px 4px}
+  :root[data-obtheme="bold"] body.mode-remote .ob-score{font-size:clamp(19px,5.2vw,26px);min-width:0}
+  :root[data-obtheme="bold"] body.mode-remote .ob-center{gap:4px;padding:0 7px}
+  :root[data-obtheme="bold"] body.mode-remote .ob-q{font-size:9.5px;padding:2px 5px}
+  :root[data-obtheme="bold"] body.mode-remote .ob-clock{font-size:clamp(16px,4.4vw,22px);padding:1px 7px}
+  :root[data-obtheme="bold"] body.mode-remote .ob-shot .num{font-size:clamp(16px,4.4vw,21px)}
+  :root[data-obtheme="bold"] body.mode-remote .ob-shot::after{display:none}
+
+  /* ===================================================================
+     v2-15.0 📢 현장 안내 TTS 도크 — 컨트롤 화면 하단(OBS 콤펙트 바 바로 위)
+     =================================================================== */
+  :root{ --tts-h: 0px; }
+  body:not(.display-mode):not(.solo-display):not(.obs-overlay) #app{
+    padding-bottom:calc(var(--obs-h) + var(--tts-h, 0px) + 10px);
+  }
+  #ttsDock{
+    position:fixed;left:50%;bottom:calc(var(--obs-h) + 10px);transform:translateX(-50%);
+    z-index:61;width:min(720px,calc(100% - 12px));
+    display:none;flex-direction:column;gap:6px;padding:7px 9px 8px;
+    border-radius:14px;background:linear-gradient(180deg,rgba(14,21,31,.97),rgba(6,9,14,.97));
+    border:1px solid #23303f;box-shadow:0 14px 34px rgba(0,0,0,.5);
+    color:#dbe7f6;font-family:var(--ui);
+  }
+  body:not(.display-mode):not(.solo-display):not(.obs-overlay):not(.record-mode) #ttsDock{display:flex}
+  body.modal-open #ttsDock{display:none !important}
+  #ttsHead{
+    display:flex;align-items:center;gap:7px;height:24px;padding:0 2px;
+    background:none;border:0;color:#e8f0fb;font-size:12px;font-weight:900;text-align:left;
+  }
+  #ttsHead .tts-emo{font-size:13px}
+  #ttsHead .tts-st{margin-left:auto;font-size:10.5px;font-weight:800;color:#7b8ca4}
+  #ttsHead.on .tts-st{color:#8cf5bd}
+  #ttsHead .tts-cv{font-size:10px;color:#7b8ca4;transition:transform .18s ease}
+  #ttsDock.folded #ttsHead .tts-cv{transform:rotate(-90deg)}
+  #ttsDock.folded .tts-body{display:none}
+  .tts-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .tts-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px 0}
+  .tts-chips::-webkit-scrollbar{display:none}
+  .tts-empty{font-size:10.5px;font-weight:700;color:#6d7d93;padding:6px 2px}
+  .tts-chip{
+    flex:0 0 auto;max-width:300px;height:32px;padding:0 11px;border-radius:999px;
+    border:1px solid #2b3b53;background:#101a25;color:#a9b9cf;
+    font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .tts-chip:active{background:#17232f}
+  .tts-chip.speaking{border-color:rgba(16,232,117,.6);color:#8cf5bd;background:rgba(16,232,117,.12)}
+  .tts-row{display:flex;gap:6px;align-items:center}
+  #ttsText{
+    flex:1 1 auto;min-width:0;height:38px;padding:0 11px;border-radius:10px;
+    background:#060b12;border:1px solid #24313f;color:#eef4fd;font-size:13px;font-weight:700;
+  }
+  #ttsText:focus{outline:none;border-color:#3a5b86}
+  #ttsSay{
+    flex:0 0 auto;height:38px;padding:0 14px;border-radius:10px;
+    border:1px solid #f5c542;background:linear-gradient(180deg,#f7d15c,#d9a520);color:#1a1204;
+    font-size:13px;font-weight:900;white-space:nowrap;
+  }
+  #ttsSay.on{background:linear-gradient(180deg,#3a2f10,#221a06);color:#ffe27a;border-color:#8a6d1e}
+  #ttsEdit{
+    flex:0 0 auto;width:38px;height:38px;border-radius:10px;border:1px solid #2b3b53;
+    background:#101a25;color:#9fb0c6;font-size:14px;line-height:1;
+  }
+  body.mode-remote #ttsDock{width:calc(100% - 8px);padding:5px 7px 6px;gap:4px;border-radius:12px}
+  body.mode-remote #ttsHead{height:22px;font-size:11.5px}
+  body.mode-remote .tts-chips{gap:5px}
+  body.mode-remote .tts-chip{height:29px;font-size:10.8px;max-width:230px}
+  body.mode-remote #ttsText,
+  body.mode-remote #ttsSay,
+  body.mode-remote #ttsEdit{height:34px}
+  body.mode-remote #ttsSay{padding:0 11px;font-size:12.5px}
+  /* 낮은 가로 화면(폰 가로) — 제목줄 없이 입력줄+칩 한 줄로 얍게 */
+  @media (max-height:520px){
+    #ttsDock{width:min(600px,calc(100% - 12px));padding:5px 8px;gap:4px}
+    body.mode-remote #ttsDock{width:calc(100% - 8px)}
+    #ttsDock #ttsHead{display:none}
+    #ttsDock.folded .tts-body{display:flex !important}
+    .tts-chip{height:27px;font-size:10.5px;max-width:220px}
+    #ttsText,#ttsSay,#ttsEdit{height:32px}
+    #ttsSay{padding:0 11px;font-size:12px}
+  }
+
+  /* ✎ 자주 쓰는 문구 편집 시트 */
+  #ttsSheet{
+    position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;
+    background:rgba(3,5,9,.74);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);padding:16px;
+  }
+  #ttsSheet[hidden]{display:none !important}
+  .ts-card{
+    width:min(560px,94vw);max-height:calc(100vh - 32px);display:flex;flex-direction:column;gap:9px;
+    padding:16px;border-radius:16px;background:#0e1520;border:1px solid #2b3b53;color:#eaf2fd;
+    box-shadow:0 26px 60px rgba(0,0,0,.65);
+  }
+  .ts-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .ts-head b{font-size:14px;font-weight:900}
+  .ts-head button{
+    height:32px;padding:0 11px;border-radius:9px;border:1px solid #2b3b53;
+    background:#16212e;color:#c6d3e5;font-size:11.5px;font-weight:900;
+  }
+  .ts-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;min-height:0}
+  .ts-item{display:flex;gap:6px;align-items:flex-start}
+  .ts-item textarea{
+    flex:1 1 auto;min-height:62px;resize:vertical;padding:9px 10px;border-radius:10px;
+    background:#070c13;border:1px solid #24313f;color:#e8f0fb;
+    font-size:12.5px;line-height:1.55;font-family:inherit;
+  }
+  .ts-item textarea:focus{outline:none;border-color:#3a5b86}
+  .ts-del{
+    flex:0 0 auto;width:34px;height:34px;border-radius:9px;
+    border:1px solid #4a2b30;background:#1c1214;color:#ff9b93;font-size:13px;
+  }
+  .ts-foot{display:flex;gap:8px;flex-wrap:wrap}
+  .ts-foot button{
+    flex:1 1 auto;height:40px;border-radius:11px;border:1px solid #2b3b53;
+    background:#16212e;color:#dbe7f6;font-size:12.5px;font-weight:900;
+  }
+  .ts-foot #ttsAdd{background:rgba(16,232,117,.14);border-color:rgba(16,232,117,.5);color:#8cf5bd}
+  .ts-hint{margin:0;font-size:10.5px;line-height:1.5;color:#71809a}
+
+  /* ===================================================================
      v2-14 🎥 녹화 모드 (?mode=record) — 16:9 카메라 + 하단 스코어바 합성
      =================================================================== */
   body.record-mode{overflow:hidden;background:#000}
@@ -1377,6 +1653,10 @@
     padding:10px 16px;border-radius:12px;background:rgba(10,16,24,.9);
     border:1px solid rgba(120,145,180,.35);color:#dff0ff;font-size:12.5px;font-weight:800;
     opacity:0;transition:opacity .25s ease;pointer-events:none;max-width:90vw;text-align:center;
+  }
+  /* v2-15.0 세로에서는 '↔ 가로 모드' 버튼(66px)을 가리지 않게 토스트를 그 아래로 내린다 */
+  @media (orientation:portrait){
+    #recToast{top:calc(122px + env(safe-area-inset-top,0px))}
   }
   #recToast.show{opacity:1}
   /* 낮은 가로 화면(폰 가로)에서는 컨트롤을 더 조밀하게 */
@@ -1849,13 +2129,22 @@
     #recBrand .rb-t2{font-size:11.5px}
   }
 
-  /* 📱 세로일 때만 뜨는 가로 회전 권장 배지 */
+  /* 📱 세로일 때만 뜨는 가로 모드 전환 배지 */
   #recRotate{
     position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:7;
-    padding:8px 14px;border-radius:999px;max-width:calc(100vw - 16px);white-space:nowrap;
-    background:rgba(10,16,24,.74);border:1px solid rgba(245,197,66,.55);color:#ffe27a;
-    font-size:12.5px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.45);
+    display:flex;align-items:center;gap:9px;padding:6px 7px 6px 13px;border-radius:999px;
+    max-width:calc(100vw - 16px);white-space:nowrap;
+    background:rgba(10,16,24,.82);border:1px solid rgba(245,197,66,.55);color:#ffe27a;
+    font-size:12px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.45);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   }
+  #recRotate .rr-lbl{overflow:hidden;text-overflow:ellipsis}
+  #recRotate button{
+    flex:0 0 auto;height:32px;padding:0 13px;border-radius:999px;
+    border:1px solid #ffd766;background:linear-gradient(180deg,#f7d15c,#d9a520);color:#1a1204;
+    font-size:12.5px;font-weight:900;letter-spacing:-.01em;
+  }
+  #recRotate button:active{transform:translateY(1px)}
   #recRotate[hidden]{display:none !important}
   @media (max-width:560px){
     #recBar{gap:6px;padding:7px 8px}
@@ -2132,6 +2421,13 @@ apply(DATA);
     되돌려 눌러도 새 창이 열리지 않는다. 디자인·레이아웃·출력화면 확대 크기는 v2-14.10 그대로.
     출력화면(?mode=display) STEPBACK 문구 + 게임시간·점수·샷클락 숫자 대폭 확대(2·3자리 넘침 없음)
     웹 레코더 BGM 기본값 OFF — 저장값이 없으면 조용히 시작(설정에서 켜면 기억)
+  · v2-15.0: 🎛️ OBS 오버레이 디자인 테마 4종 — 기본(Default) · 방송 중계형(broadcast) · 컴팩트 필(pill) ·
+    볼드 스포츠(bold). 설정 ⚙ 의 'OBS 오버레이 디자인' 에서 고르고, 주소에 &theme=... 로도 바로 열린다
+    (기본값은 파라미터 없이 지금 그대로 — 기존 링크·북마크는 모양이 바뀌지 않는다)
+  · v2-15.0: 📢 현장 안내 TTS — 컨트롤 화면 하단(OBS 바 위) 도크에서 문구를 입력해 📢 안내하기,
+    자주 쓰는 문구는 칩으로 저장·수정·삭제(localStorage · 기본 3문장 탑재 · 한 번 눌러 즉시 낭독)
+  · v2-15.0: ?mode=record 세로 화면에 '↔ 가로 모드' 버튼 — 전체화면 + screen.orientation.lock('landscape')
+    시도, 미지원·차단 시 안내 토스트
   · v2-14.6: 🎬 코덱 선택 — H.264(기본 · 호환성 우선) / HEVC(H.265 · 미지원 기기 자동 H.264 폴백) (localStorage 기억 · 녹화 중 잠금)
   · v2-14: 📡 마지막 방 코드 기억 — 컨트롤은 송신, 출력·녹화·오버레이는 수신으로 열자마자 자동 연결
   · v2-13: 쿼터 이동 시 직전 쿼터의 누적 점수를 이어받아 시작(팀파울만 0) · 결과표는 쿼터 순수 득점 + 합계=마지막 쿼터 누적
@@ -2514,6 +2810,17 @@ apply(DATA);
         </div>
       </div>
 
+      <div class="frow">
+        <label>OBS 오버레이 디자인</label>
+        <div class="chips" id="obThemeChips">
+          <button class="chip" data-obpick="default">기본</button>
+          <button class="chip" data-obpick="broadcast">📺 방송 중계형</button>
+          <button class="chip" data-obpick="pill">▬ 컴팩트 필</button>
+          <button class="chip" data-obpick="bold">💥 볼드 스포츠</button>
+        </div>
+        <p class="hint" style="margin:2px 0 0"><b id="obThemeNote">지금 디자인 — 등근 다크 바</b> · 컨트롤 화면 하단 바와 <b>?mode=obs</b> 오버레이에 함께 적용됩니다. 오버레이 주소에 <b>&amp;theme=broadcast</b> 처럼 붙여 바로 열 수도 있습니다.</p>
+      </div>
+
       <div class="danger">
         <button data-cmd="reset">경기 전체 리셋 (점수·파울·시계)</button>
       </div>
@@ -2559,6 +2866,39 @@ apply(DATA);
 </div>
 
 
+<!-- ================= 📢 현장 안내 TTS 도크 (컨트롤 화면 · OBS 바 바로 위) ================= -->
+<div id="ttsDock" aria-label="현장 안내 방송">
+  <button id="ttsHead" type="button" aria-expanded="true" aria-controls="ttsBody">
+    <span class="tts-emo" aria-hidden="true">📢</span><span>현장 안내</span>
+    <span class="tts-st" id="ttsState">대기</span><span class="tts-cv" aria-hidden="true">▾</span>
+  </button>
+  <div class="tts-body" id="ttsBody">
+    <div class="tts-chips" id="ttsChips" role="group" aria-label="자주 쓰는 안내 문구"></div>
+    <div class="tts-row">
+      <input id="ttsText" type="text" maxlength="200" placeholder="안내할 문구를 입력하세요" autocomplete="off" spellcheck="false" aria-label="안내 문구">
+      <button id="ttsSay" type="button">📢 안내하기</button>
+      <button id="ttsEdit" type="button" aria-label="자주 쓰는 문구 편집" title="자주 쓰는 문구 추가·수정·삭제">✎</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✎ 자주 쓰는 문구 편집 시트 -->
+<div id="ttsSheet" hidden role="dialog" aria-modal="true" aria-label="자주 쓰는 안내 문구 편집">
+  <div class="ts-card">
+    <div class="ts-head">
+      <b>✎ 자주 쓰는 안내 문구</b>
+      <button id="ttsSheetClose" type="button">✕ 닫기</button>
+    </div>
+    <div class="ts-list" id="ttsList"></div>
+    <div class="ts-foot">
+      <button id="ttsAdd" type="button">＋ 문구 추가</button>
+      <button id="ttsRestore" type="button">기본 문구로 되돌리기</button>
+    </div>
+    <p class="ts-hint">입력하는 대로 바로 저장됩니다. 칩을 누르면 입력창에 채워지고 곧바로 안내가 나갑니다.</p>
+  </div>
+</div>
+
+
 <!-- ================= 🎥 녹화 모드 (?mode=record) ================= -->
 <div id="recWrap" hidden aria-label="녹화 모드"><!-- v2-14.3 rec ui -->
   <canvas id="recCanvas" width="1920" height="1080"></canvas>
@@ -2569,8 +2909,11 @@ apply(DATA);
     <i class="rb-ball" aria-hidden="true"></i><b class="rb-t1">STEPBACK</b><span class="rb-t2">SCOREBOARD</span>
   </div>
 
-  <!-- 📱 세로일 때만: 가로 회전 권장 배지 -->
-  <div id="recRotate" hidden>📱 가로로 돌리면 16:9 촬영 화면이 꽉 차게 보여요</div>
+  <!-- 📱 세로일 때만: 가로 모드로 바로 전환하는 버튼 -->
+  <div id="recRotate" hidden>
+    <span class="rr-lbl">📱 세로 화면이에요</span>
+    <button id="recRotBtn" type="button">↔ 가로 모드</button>
+  </div>
 
   <!-- ① 녹화 전 — 하단 얇은 플로팅 바 (핵심 조작만) -->
   <div id="recBar">
@@ -5338,7 +5681,7 @@ apply(DATA);
 
   /* ================= 이벤트 ================= */
     document.addEventListener('click', function(e){
-    var el = e.target.closest ? e.target.closest('[data-act],[data-q],[data-dur],[data-shot],[data-shotadj],[data-dir],[data-color],[data-layout],[data-fx],[data-min],[data-sec],[data-fmt],[data-annvoice],[data-game],[data-cmd]') : null;
+    var el = e.target.closest ? e.target.closest('[data-act],[data-q],[data-dur],[data-shot],[data-shotadj],[data-dir],[data-color],[data-layout],[data-obpick],[data-fx],[data-min],[data-sec],[data-fmt],[data-annvoice],[data-game],[data-cmd]') : null;
     if(!el) return;
     var d = el.dataset;
 
@@ -5361,6 +5704,7 @@ apply(DATA);
     if(d.shot){ setShot(+d.shot * 1000); return; }
     if(d.shotadj !== undefined && d.shotadj !== ''){ adjustShot((+d.shotadj || 0) * 1000); return; }
     if(d.layout){ S.layout = (d.layout === 'portrait') ? 'portrait' : 'landscape'; render(); save(); publish(); return; }
+    if(d.obpick){ obThemeApply(d.obpick, true); return; }
     if(d.dir !== undefined && d.dir !== ''){ S.mirror = (+d.dir === 1); render(); save(); publish(); return; }
     if(d.color && d.team){ setTeamColor(d.team, d.color); return; }
     if(d.cmd === 'cycle-color'){ cycleTeamColor(d.team); return; }
@@ -6846,6 +7190,32 @@ apply(DATA);
     b.textContent = on ? '✕ 전체화면 해제' : '⛶ 전체화면';
     b.classList.toggle('on', on);
   }
+  /* ---------------- 📱 세로 화면 → 가로 모드 버튼 ----------------
+     · 전체화면을 먼저 잡고 screen.orientation.lock('landscape') 를 시도한다
+       (가로 고정은 전체화면에서만 허용하는 브라우저가 많다)
+     · 미지원·차단이면 짧은 안내 토스트로 이유를 알려 준다 */
+  function recLandscapeGo(){
+    var so = (window.screen && screen.orientation) ? screen.orientation : null;
+    var canLock = !!(so && typeof so.lock === 'function');
+    try { if(!((typeof fsOn === 'function') && fsOn())) fsEnter(); } catch(e){}
+    var failed = function(){
+      recToast('가로 고정이 막혀 있어요 · 브라우저 화면 회전 잠금을 풀거나 기기를 직접 돌려 주세요', 4200);
+    };
+    var tryLock = function(){
+      if(!canLock){
+        recToast('이 브라우저는 가로 고정을 지원하지 않아요 · 기기를 직접 가로로 돌려 주세요', 3600);
+        return;
+      }
+      try {
+        var p = so.lock('landscape');
+        if(p && p.then){
+          p.then(function(){ recToast('↔ 가로 모드로 전환했어요', 1800); recOrient(); }).catch(failed);
+        } else { recOrient(); }
+      } catch(e){ failed(); }
+    };
+    setTimeout(tryLock, 280);
+    setTimeout(recOrient, 460);
+  }
   /* ?mode=record — 켜지자마자 전체화면 시도, 브라우저가 막으면 첫 터치/클릭(● 녹화 시작 포함)에서 진입 */
   function initRecordFullscreen(){
     var tryAuto = function(){ try { fsEnter(); } catch(e){} recLockLandscape(); recFsLabel(); recOrient(); };
@@ -6879,6 +7249,11 @@ apply(DATA);
     });
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(function(ev){
       document.addEventListener(ev, function(){ setTimeout(recFsLabel, 60); });
+    });
+    var rbtn = $('recRotBtn');
+    if(rbtn) rbtn.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      recLandscapeGo();
     });
     recFsLabel();
   }
@@ -7583,7 +7958,7 @@ apply(DATA);
   function rmTopic(){ return 'stepback/sb2/' + (RM.room || 'STEP') + '/state'; }
   function rmLink(){
     var base = location.href.split('#')[0].split('?')[0];
-    return base + '?mode=obs&room=' + encodeURIComponent(RM.room || 'STEP');
+    return base + '?mode=obs&room=' + encodeURIComponent(RM.room || 'STEP') + obThemeQuery();
   }
 
   /* ---------- 연결 ---------- */
@@ -7840,7 +8215,7 @@ apply(DATA);
     if(ri && document.activeElement !== ri) ri.value = RM.room;
     if(oi && document.activeElement !== oi) oi.value = RM.room;
     var hint = $('rpUrlHint');
-    if(hint) hint.textContent = '?mode=obs&room=' + (RM.room || 'STEP');
+    if(hint) hint.textContent = '?mode=obs&room=' + (RM.room || 'STEP') + obThemeQuery();
     var lk = $('rpLink');
     if(lk) lk.value = rmLink();
     var bk = $('rpBroker');
@@ -8053,6 +8428,304 @@ apply(DATA);
     }
   }
 
+  /* =====================================================================
+     v2-15.0 🎛️ OBS 오버레이 디자인 테마
+     · html[data-obtheme] 하나로 전환 — 첫 페인트 전 인라인 스크립트가 ?theme= → 저장값 순으로 심는다
+     · 설정 ⚙ 의 'OBS 오버레이 디자인' 칩 = 컨트롤 화면 하단 바 미리보기 + ?mode=obs 오버레이
+     · ?theme= 로 연 창은 저장값을 바꾸지 않는다 (링크로 연 창이 내 기본 디자인을 덮지 않게)
+     ===================================================================== */
+  var OB_THEME_KEY = 'bball_sb2_obs_theme';
+  var OB_THEMES = {
+    default:  { id:'default',   label:'기본',        note:'지금 디자인 — 둥근 다크 바' },
+    broadcast:{ id:'broadcast', label:'방송 중계형', note:'화면 폭을 쓰는 하단 띠 · 팀 컬러 라인' },
+    pill:     { id:'pill',      label:'컴팩트 필',   note:'얇은 캡슐 — 방송 화면을 덜 가림' },
+    bold:     { id:'bold',      label:'볼드 스포츠', note:'큰 글자 · 팀 컬러 블록' }
+  };
+  function obThemeValid(id){ return !!(id && OB_THEMES[id]); }
+  function obThemeNow(){ return document.documentElement.getAttribute('data-obtheme') || 'default'; }
+  function obThemeQuery(){
+    var id = obThemeNow();
+    return (id && id !== 'default') ? ('&theme=' + id) : '';
+  }
+  function obThemePaint(){
+    var id = obThemeNow(), i;
+    var chips = document.querySelectorAll('#obThemeChips [data-obpick]');
+    for(i = 0; i < chips.length; i++){
+      chips[i].classList.toggle('on', chips[i].getAttribute('data-obpick') === id);
+    }
+    var note = $('obThemeNote');
+    if(note) note.textContent = (OB_THEMES[id] || OB_THEMES['default']).note;
+    /* 원격 패널의 오버레이 링크에도 지금 테마를 실어 보낸다 */
+    try {
+      var lk = $('rpLink'); if(lk) lk.value = rmLink();
+      var hint = $('rpUrlHint');
+      if(hint) hint.textContent = '?mode=obs&room=' + (RM.room || 'STEP') + obThemeQuery();
+    } catch(e){}
+    try { if(typeof fit === 'function') fit(); } catch(e){}
+  }
+  function obThemeApply(id, save){
+    if(!obThemeValid(id)) id = 'default';
+    document.documentElement.setAttribute('data-obtheme', id);
+    if(save){ try { localStorage.setItem(OB_THEME_KEY, id); } catch(e){} }
+    obThemePaint();
+  }
+  function obThemeBoot(){
+    var m = null;
+    try { m = /([?&])theme=([a-z]+)/.exec(location.search); } catch(e){}
+    if(m && obThemeValid(m[2])){ obThemeApply(m[2], false); return; }
+    var saved = null;
+    try { saved = localStorage.getItem(OB_THEME_KEY); } catch(e){}
+    obThemeApply(obThemeValid(saved) ? saved : 'default', false);
+  }
+
+  /* =====================================================================
+     v2-15.0 📢 현장 안내 TTS — 자주 쓰는 문구(프리셋) + 입력한 문구 즉시 낭독
+     · speechSynthesis ko-KR · 밝고 또렷한 톤(pitch 1.18 · rate 1.02)
+     · 프리셋은 localStorage 에 그대로 저장 — 추가·수정·삭제 자유(기본 3문장 탑재)
+     ===================================================================== */
+  var TTS_KEY = 'bball_sb2_tts_presets';
+  var TTS_FOLD_KEY = 'bball_sb2_tts_fold';
+  var TTS_DEFAULTS = [
+    '잠시뒤 게임을 시작합니다. 게임 진행 순서에 맞춰 준비 부탁드립니다.',
+    '불필요한 파울 2회 누적되면, 주심 판단에 의해 U파울을 선언합니다. 몸싸움이 많이 격해 질 경우, 게임을 잠시 중단할 수 있으니, 매너게임 부탁드리겠습니다.',
+    '수고하셨습니다. 주변정리 및 놓고가시는 물건이 없는지 확인 부탁드립니다.'
+  ];
+  var TTS = { list:[], speaking:false, utt:null, lastIdx:-1 };
+  window.__tts = TTS;
+  function ttsLoad(){
+    var raw = null;
+    try { raw = localStorage.getItem(TTS_KEY); } catch(e){}
+    if(raw === null){ TTS.list = TTS_DEFAULTS.slice(); ttsSave(); return; }
+    try {
+      var a = JSON.parse(raw);
+      if(Object.prototype.toString.call(a) === '[object Array]'){
+        TTS.list = a.slice(0, 20).map(function(s){ return String(s == null ? '' : s); });
+        return;
+      }
+    } catch(e){}
+    TTS.list = TTS_DEFAULTS.slice();
+    ttsSave();
+  }
+  function ttsSave(){ try { localStorage.setItem(TTS_KEY, JSON.stringify(TTS.list)); } catch(e){} }
+  function ttsChips(){
+    var box = $('ttsChips');
+    if(!box) return;
+    box.innerHTML = '';
+    var shown = 0;
+    TTS.list.forEach(function(txt, i){
+      if(!String(txt).trim()) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tts-chip';
+      b.setAttribute('data-tts-i', String(i));
+      b.title = txt;
+      b.textContent = txt;
+      box.appendChild(b);
+      shown++;
+    });
+    if(!shown){
+      var e = document.createElement('span');
+      e.className = 'tts-empty';
+      e.textContent = '✎ 로 자주 쓰는 안내 문구를 추가해 보세요';
+      box.appendChild(e);
+    }
+  }
+  function ttsVoice(){
+    try { if(typeof koVoice === 'function'){ var v = koVoice(); if(v) return v; } } catch(e){}
+    try {
+      var vs = window.speechSynthesis.getVoices() || [];
+      for(var i = 0; i < vs.length; i++){
+        if(((vs[i].lang || '').toLowerCase().replace('_', '-')).indexOf('ko') === 0) return vs[i];
+      }
+    } catch(e){}
+    return null;
+  }
+  function ttsState(txt, speaking){
+    var st = $('ttsState');
+    if(st) st.textContent = txt;
+    var head = $('ttsHead');
+    if(head) head.classList.toggle('on', !!speaking);
+    var b = $('ttsSay');
+    if(b){ b.classList.toggle('on', !!speaking); b.textContent = speaking ? '■ 멈춤' : '📢 안내하기'; }
+    var chips = document.querySelectorAll('#ttsChips .tts-chip');
+    for(var i = 0; i < chips.length; i++){
+      chips[i].classList.toggle('speaking', !!speaking && (+chips[i].getAttribute('data-tts-i') === TTS.lastIdx));
+    }
+  }
+  function ttsStop(){
+    try { if('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch(e){}
+    TTS.speaking = false; TTS.utt = null;
+    ttsState('대기', false);
+  }
+  function ttsSpeak(text, idx){
+    text = String(text == null ? '' : text).trim();
+    if(TTS.speaking){ ttsStop(); return; }               // 재생 중에 다시 누르면 정지
+    if(!text){ ttsState('문구를 입력해 주세요', false); return; }
+    if(!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance !== 'function'){
+      ttsState('이 브라우저는 음성 안내를 지원하지 않아요', false);
+      return;
+    }
+    if(typeof idx === 'number' && idx >= 0) TTS.lastIdx = idx;
+    try { window.speechSynthesis.cancel(); } catch(e){}
+    var u = new window.SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR';
+    u.rate = 1.02;        // 또박또박
+    u.pitch = 1.18;       // 밝고 또렷한 톤
+    u.volume = 1.0;
+    var v = ttsVoice();
+    if(v) u.voice = v;
+    TTS.utt = u;
+    TTS.speaking = true;
+    u.onstart = function(){ TTS.speaking = true; ttsState('안내 중…', true); };
+    u.onend = function(){ if(TTS.utt === u){ TTS.speaking = false; TTS.utt = null; ttsState('대기', false); } };
+    u.onerror = function(ev){
+      if(TTS.utt !== u) return;
+      TTS.speaking = false; TTS.utt = null;
+      var err = ev && ev.error;
+      ttsState((err === 'interrupted' || err === 'canceled') ? '대기' : '음성을 재생하지 못했어요', false);
+    };
+    try { window.speechSynthesis.speak(u); ttsState('안내 중…', true); }
+    catch(e){ TTS.speaking = false; TTS.utt = null; ttsState('음성을 재생하지 못했어요', false); }
+  }
+  function ttsMeasure(){
+    var d = $('ttsDock'), h = 0;
+    try {
+      if(d && window.getComputedStyle(d).display !== 'none'){
+        h = Math.round(d.getBoundingClientRect().height) + 6;
+      }
+    } catch(e){ h = 0; }
+    try { document.documentElement.style.setProperty('--tts-h', h + 'px'); } catch(e){}
+  }
+  function ttsSetFold(fold, save){
+    var d = $('ttsDock');
+    if(!d) return;
+    d.classList.toggle('folded', !!fold);
+    var head = $('ttsHead');
+    if(head) head.setAttribute('aria-expanded', fold ? 'false' : 'true');
+    if(save !== false){ try { localStorage.setItem(TTS_FOLD_KEY, fold ? '1' : '0'); } catch(e){} }
+    ttsMeasure();
+  }
+  function ttsEditList(){
+    var list = $('ttsList');
+    if(!list) return;
+    list.innerHTML = '';
+    if(!TTS.list.length){
+      var p = document.createElement('p');
+      p.className = 'ts-hint';
+      p.textContent = '문구가 없습니다. [＋ 문구 추가]로 만들어 보세요.';
+      list.appendChild(p);
+      return;
+    }
+    TTS.list.forEach(function(txt, i){
+      var row = document.createElement('div');
+      row.className = 'ts-item';
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.rows = Math.min(6, Math.max(2, Math.ceil(String(txt).length / 34)));
+      ta.setAttribute('data-tts-edit', String(i));
+      ta.setAttribute('aria-label', '안내 문구 ' + (i + 1));
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'ts-del';
+      del.setAttribute('data-tts-del', String(i));
+      del.setAttribute('aria-label', '이 문구 삭제');
+      del.textContent = '✕';
+      row.appendChild(ta);
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+    /* 글자 길이에 맞춰 칸 높이를 잡아 준다(짧은 문구는 두 줄, 긴 문구는 잘리지 않게) */
+    setTimeout(function(){
+      var tas = list.querySelectorAll('textarea');
+      for(var i = 0; i < tas.length; i++){
+        var t = tas[i];
+        t.style.height = 'auto';
+        t.style.height = Math.min(260, t.scrollHeight + 10) + 'px';
+      }
+    }, 0);
+  }
+  function ttsSheetOpen(){ var s = $('ttsSheet'); if(!s) return; ttsEditList(); s.hidden = false; }
+  function ttsSheetClose(){ var s = $('ttsSheet'); if(s) s.hidden = true; }
+  function ttsInit(){
+    var dock = $('ttsDock');
+    if(!dock) return;
+    ttsLoad();
+    ttsChips();
+    var head = $('ttsHead');
+    if(head) head.addEventListener('click', function(){ ttsSetFold(!dock.classList.contains('folded')); });
+    var inp = $('ttsText');
+    var say = $('ttsSay');
+    if(say) say.addEventListener('click', function(){ ttsSpeak(inp ? inp.value : '', -1); });
+    if(inp) inp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); ttsSpeak(inp.value, -1); }
+    });
+    var chips = $('ttsChips');
+    if(chips) chips.addEventListener('click', function(e){
+      var b = e.target.closest ? e.target.closest('[data-tts-i]') : null;
+      if(!b) return;
+      var i = +b.getAttribute('data-tts-i');
+      var txt = TTS.list[i] || '';
+      if(!txt) return;
+      if(inp) inp.value = txt;
+      TTS.lastIdx = i;
+      ttsSpeak(txt, i);
+    });
+    var edit = $('ttsEdit');
+    if(edit) edit.addEventListener('click', ttsSheetOpen);
+    var close = $('ttsSheetClose');
+    if(close) close.addEventListener('click', ttsSheetClose);
+    var sheet = $('ttsSheet');
+    if(sheet) sheet.addEventListener('click', function(e){ if(e.target === sheet) ttsSheetClose(); });
+    var list = $('ttsList');
+    if(list){
+      list.addEventListener('input', function(e){
+        var ta = e.target;
+        if(!ta || !ta.getAttribute || ta.getAttribute('data-tts-edit') === null) return;
+        var i = +ta.getAttribute('data-tts-edit');
+        TTS.list[i] = ta.value;
+        ttsSave();
+        ttsChips();
+      });
+      list.addEventListener('click', function(e){
+        var b = e.target.closest ? e.target.closest('[data-tts-del]') : null;
+        if(!b) return;
+        var i = +b.getAttribute('data-tts-del');
+        TTS.list.splice(i, 1);
+        ttsSave(); ttsEditList(); ttsChips();
+      });
+    }
+    var add = $('ttsAdd');
+    if(add) add.addEventListener('click', function(){
+      if(TTS.list.length >= 20) return;
+      TTS.list.push('');
+      ttsSave(); ttsEditList(); ttsChips();
+      var ta = document.querySelector('#ttsList textarea[data-tts-edit="' + (TTS.list.length - 1) + '"]');
+      if(ta) ta.focus();
+    });
+    var restore = $('ttsRestore');
+    if(restore) restore.addEventListener('click', function(){
+      var ok = true;
+      try { ok = window.confirm('기본 문구 3개로 되돌릴까요?\n지금 목록에 있는 문구는 사라집니다.'); } catch(e){}
+      if(!ok) return;
+      TTS.list = TTS_DEFAULTS.slice();
+      ttsSave(); ttsEditList(); ttsChips();
+    });
+    var foldSaved = null;
+    try { foldSaved = localStorage.getItem(TTS_FOLD_KEY); } catch(e){}
+    /* 처음 쓸 때: 작은 화면(높이 700 미만)은 접힌 채로 — 컨트롤 판을 덜 가리게. 한 번 펼치면 그 선택을 기억한다 */
+    var fold = (foldSaved === null) ? (window.innerHeight < 700) : (foldSaved === '1');
+    ttsSetFold(fold, false);
+    ttsState('대기', false);
+    ttsMeasure();
+    setTimeout(ttsMeasure, 60);
+    setTimeout(ttsMeasure, 600);
+    window.addEventListener('resize', ttsMeasure);
+    window.addEventListener('orientationchange', function(){ setTimeout(ttsMeasure, 160); });
+    document.addEventListener('keydown', function(e){
+      if((e.key === 'Escape' || e.key === 'Esc') && sheet && !sheet.hidden){ ttsSheetClose(); }
+    }, true);
+  }
+
   /* ================= 시작 ================= */
   if(isDisplay){
     document.body.classList.add('display-mode');
@@ -8097,6 +8770,7 @@ apply(DATA);
   }
 
   rmInit();
+  obThemeBoot();
   render();
   paintFsBtn();          /* v2-14.2: 상단 전체화면 버튼 글자(⛶ 전체화면 / ✕ 해제) 초기화 */
 
@@ -8104,6 +8778,7 @@ apply(DATA);
   fit();
   setTimeout(fit, 60);
   setTimeout(fit, 300);
+  ttsInit();                     /* v2-15.0: 컨트롤 화면 현장 안내 TTS 도크 */
   if(document.fonts && document.fonts.ready){ document.fonts.ready.then(fit).catch(function(){}); }
 })();
 </script>
