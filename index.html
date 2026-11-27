@@ -9170,8 +9170,9 @@ apply(DATA);
   setTimeout(fit, 300);
   ttsInit();                     /* v2-15.0: 컨트롤 화면 현장 안내 TTS 도크 */
   /* v2.16.0: 분기 시작/종료 음원(0.54MB)은 첫 화면이 뜬 뒤 조용히 미리 받아 둔다
-     — 분기 종료 휘슬이 처음 나올 때 늦지 않게. 실패해도 앱은 그대로 동작한다. */
-  setTimeout(function(){ lazyAsset('audio-long'); }, 1500);
+     — 분기 종료 휘슬이 처음 나올 때 늦지 않게. 소리를 내는 화면(컨트롤·레코더)에서만 받고,
+     오버레이·전광판(CAM WebView)에서는 받지 않아 현장 데이터를 아낀다. 실패해도 앱은 그대로 동작. */
+  if(!obsMode && !isDisplay && !recMode) setTimeout(function(){ lazyAsset('audio-long'); }, 1500);
   if(document.fonts && document.fonts.ready){ document.fonts.ready.then(fit).catch(function(){}); }
 })();
 </script>
